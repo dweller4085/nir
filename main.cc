@@ -4,17 +4,8 @@
 
 
 int main (int argc, char ** argv) {
-    /*
-    char * dimacs = nullptr;
-    Solver solver;
 
-    try {
-        solver = Solver {dimacs, Solver::Settings {}};
-    } catch (std::exception const & e) {
-        std::cerr << e.what() << "\n";
-        exit(-1);
-    }
-    
+    /*
     auto result = solver.solve();
 
     switch (result.type) {
