@@ -4,11 +4,12 @@
 
 struct TerMat {
     u64 * vecs;
-    u32 vec_cnt;
-    u32 var_cnt;
+    u32 vecCnt;
+    u32 varCnt;
 
-    ~TerMat() {}
-    void sort() {}
+    TerMat() = default;
+    TerMat(u32 vecCnt, u32 varCnt);
+    ~TerMat();
 
     TerVecView operator [] (u32);
 };

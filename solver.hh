@@ -1,14 +1,26 @@
 #pragma once
 #include "common.hh"
 #include "mat.hh"
+#include <vector>
+
+struct CDBView {
+    BinVec varVis;
+    BinVec clauseVis;
+    CDBView(); // full vis
+};
+
+struct STTNode {
+    CDBView view;
+    TerVec model;
+    STTNode(); // empty model + full vis
+};
 
 struct Solver {
     struct Settings {
         u64 timeout_ms;
     };
-
     struct Result {
-        struct {
+        struct Stats {
             uint64_t time_ms;
         } stats;
 
@@ -18,24 +30,20 @@ struct Solver {
             Aborted,
         } type;
 
-        union {
-            TerVecView sat;
-            char const * unsat;
-            char const * aborted;
-        };
+        TerVec sat;
+        char const * unsat;
+        char const * aborted;
     };
 
-    static Solver from_dimacs (char const *) throw (std::invalid_argument) {
-        return {};
-    }
+    using ClauseDB = TerMat;
+    using Clause = TerVec;
 
-    Solver&& with_settings (Settings&& settings) && noexcept {
-        self.settings = settings;
-        return std::move(self);
-    }
+    Solver() = default;
+    Solver (char const * dimacs, Settings const & settings) noexcept(false);
+    Result solve() noexcept;
 
-    Result solve() noexcept { return {}; }
 
     Settings settings;
-    TerMat mat;
+    ClauseDB cdb;
+    std::vector<STTNode> searchState;
 };

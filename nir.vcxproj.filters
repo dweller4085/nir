@@ -18,6 +18,15 @@
     <ClCompile Include="main.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vec.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="solver.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vec.hh">

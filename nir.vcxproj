@@ -130,6 +130,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cc" />
+    <ClCompile Include="mat.cc" />
+    <ClCompile Include="solver.cc" />
+    <ClCompile Include="vec.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.hh" />
