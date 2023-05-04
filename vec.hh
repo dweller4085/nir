@@ -8,6 +8,7 @@ struct BinVecView {
 
     bool operator [] (u32) const;
     bool isEmpty() const;
+    void set(u32, bool);
 };
 
 struct TerVecView {
@@ -15,10 +16,10 @@ struct TerVecView {
     u32 wordCnt;
     u32 len;
 
-    enum class Value {True, False, Undef};
+    enum class Value {True, False, Undef, Def};
     Value operator [] (u32) const;
     void set(u32, Value);
-    s32 findNext(s32, Value);
+    s32 find(Value);
 };
 
 struct BinVec : BinVecView {

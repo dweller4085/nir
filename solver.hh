@@ -7,20 +7,20 @@
 struct CDBView {
     BinVec varVis;
     BinVec clauseVis;
-    
-    CDBView(); // full vis
+    CDBView();
 };
 
 struct STTNode {
     CDBView view;
     TerVec model;
-    u32 chosenVar;
+    s32 branchVar;
+    bool isMarked {false};
     
-    STTNode() = default;
-    void unitPropagate();
-    bool isSAT();
-    bool isConflicting();
-    bool chooseNextVar(); // if went over all the vars - return false
+    static STTNode nextAfter(STTNode const &);
+    bool unitPropagate(); // DPLL UP - false on conflict
+    bool isSAT() const; // is current config of view + model make a SAT
+    bool tryNextVal(); // if it didn't work for both values of the chosen var - return false
+    void chooseBranchVar();
 };
 
 struct Solver {
@@ -48,15 +48,14 @@ struct Solver {
     using ClauseDB = TerMat;
     using Clause = TerVec;
 
-    static u32 varCnt;
-    static u32 clauseCnt;
-
     Solver() = default;
     Solver (std::string const & dimacs, Settings const & settings) noexcept(false);
-    Result solve() noexcept;
+    Result solve();
 
+    static u32 varCnt; // immutable
+    static u32 clauseCnt; // immutable
 
     Settings settings;
-    ClauseDB cdb;
+    static ClauseDB cdb; // immutable
     std::vector<STTNode> STTStack;
 };
