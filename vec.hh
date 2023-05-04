@@ -9,6 +9,7 @@ struct BinVecView {
     bool operator [] (u32) const;
     bool isEmpty() const;
     void set(u32, bool);
+    s32 find(bool);
 };
 
 struct TerVecView {

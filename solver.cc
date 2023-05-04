@@ -7,15 +7,18 @@ Solver::Solver(std::string const & dimacs, Settings const & settings):
     // parse the dimacs string into the cdb...
     // saner format of my own for now
 
-/*
-    n 5
-    m 4
+    /*
+        n 5
+        m 4
 
-    011--
-    --101
-    01001
-    110--
-*/
+        011--
+        --101
+        01001
+        110--
+    */
+
+
+
 }
 
 Solver::Result Solver::solve() {
@@ -31,7 +34,7 @@ Solver::Result Solver::solve() {
             }
         }
         else if (!current.unitPropagate()) {
-            // ran into conflict in UP
+            // ran into a conflict in UP
             STTStack.pop_back();
         }
         else if (current.isSAT()) {
@@ -43,6 +46,7 @@ Solver::Result Solver::solve() {
         }
     }
 
+    // the whole ST was traversed (save the UP jumps) - unsat
     return Result {Result::Stats {}, Result::Unsat, {.unsat {"unsat"}}};
 }
 
@@ -60,17 +64,9 @@ bool STTNode::tryNextVal() {
         switch (model[branchVar]) {
             using TerVec::Value::Undef, TerVec::Value::False, TerVec::Value::True;
 
-            case Undef: {
-                model.set(branchVar, False);
-            } break;
-
-            case False: {
-                model.set(branchVar, True);
-            } break;
-
-            case True: {
-                exhaustedVals = true;
-            } break;
+            case Undef: model.set(branchVar, False); break;
+            case False: model.set(branchVar, True); break;
+            case True: exhaustedVals = true; break;
         }
     }
 
@@ -83,20 +79,29 @@ void STTNode::chooseBranchVar() {
 
 STTNode STTNode::nextAfter(STTNode const & current) {
     STTNode next {current};
-    // not sure?
     // next.view.varVis.set(current.branchVar, 0);
+    // only frob Vis in UP, since there the T of vars and clauses is implied
     return next;
 }
 
 bool STTNode::unitPropagate() {
 /*
+    // catch the conflicts here ...
     s32 unitClause;
-    while (unitClause = view.findUnit() && !isConflicting()) {
+    while ((unitClause = view.findUnit()) >= 0) {
         u32 var = unitClause.find(TerVec::Value::Def);
         model.set(var, view.at(unitClause, var));
+        // ... and here
+        // just check if there are i: view[i][j] = !unitClause[var]
+        // if there are none - no conflict
         view.varVis.set(var, 0);
         view.clauseVis.set(unitClause, 0);
     }
     
 */
+    return true;
+}
+
+bool STTNode::isSAT() const {
+    return {};
 }
