@@ -46,7 +46,7 @@ TerVec::TerVec(u32 len, Value value):
 
     for (u32 i = 0; i < wordCnt - 1; i += 1) {
         words[i] = fill[(u64)value];
-    } words[wordCnt - 1] = fill[(u64)value] & 0xFFFFFFFFFFFFFFFF << (32 - len % 32) * 2;
+    } words[wordCnt - 1] = fill[(u64)value] & 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
 }
 
 BinVec::~BinVec() {

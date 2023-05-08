@@ -81,6 +81,7 @@ void Solver::reset() {
 
 Solver::Result Solver::solve() {
     STTStack stack;
+    stack.vec.reserve(128);
     stack.push(STTNode {});
 
     while (!stack.isEmpty()) {
@@ -88,7 +89,7 @@ Solver::Result Solver::solve() {
 
         if (current.isMarked) {
             if (current.tryNextVal()) {
-                stack.push(STTNode::nextAfter(current));
+                stack.push(current);
             } else {
                 // both values have been tried, no sat in this branch
                 stack.pop();

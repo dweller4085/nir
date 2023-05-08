@@ -80,7 +80,6 @@ struct STTNode {
     STTNode(): view {}, model {Solver::cdb.varCnt, TerVec::Value::Undef} {}
     STTNode(STTNode const&) = default;
     STTNode(STTNode &&) = default;
-    static STTNode nextAfter(STTNode const & current) { return {current}; }
     bool unitPropagate(); // DPLL UP - false on conflict
     bool isSAT() const; // is current config of view + model make a SAT
     bool tryNextVal(); // if it didn't work for both values of the chosen var - return false
@@ -91,7 +90,7 @@ struct STTStack {
     std::vector<STTNode> vec;
     /*-----------------------*/
     STTStack() = default;
-    void push(STTNode && node) { vec.push_back(std::move(node)); }
+    void push(STTNode const & node) { vec.emplace_back(node); }
     void pop() { vec.pop_back(); }
     bool isEmpty() { return vec.empty(); }
     STTNode& top() { return vec.back(); }
