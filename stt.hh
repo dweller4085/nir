@@ -9,7 +9,7 @@ struct STTNode {
     bool isMarked {false};
     /*--------------------*/
     static STTNode nextAfter(STTNode const & current);
-    STTNode(): view {Solver::cdb}, model {view.cdb.varCnt, TerVec::Value::Undef} {}
+    STTNode(): view {solver::cdb}, model {view.cdb.varCnt, TerVec::Value::Undef} {}
     STTNode(STTNode const&) = default;
     STTNode(STTNode &&) = default;
     bool unitPropagate(); // DPLL UP - false on conflict

@@ -13,11 +13,11 @@ m 4
 )"};
 
 int main (int argc, char ** argv) {
-    if (!Solver::init(std::string {cnf}, Solver::Settings {})) {
+    if (!solver::init(std::string {cnf}, solver::Settings {})) {
         exit(-1);
     }
 
-    auto result = Solver::solve();
+    auto result = solver::solve();
     
 
 

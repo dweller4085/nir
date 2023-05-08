@@ -1,11 +1,11 @@
 #include "solver.hh"
 #include "stt.hh"
 
-Solver::Settings Solver::settings {};
-ClauseDB Solver::cdb {};
+ClauseDB solver::cdb {};
+solver::Settings solver::settings {};
 
-bool Solver::init(std::string const & dimacs, Settings const & settings) {
-    Solver::settings = settings;
+bool solver::init(std::string const & cnf, solver::Settings const & settings) {
+    solver::settings = settings;
 
     auto static constexpr isWS = [](char const * s) -> bool {
         return {*s == ' ' || *s == '\n'};
@@ -41,7 +41,7 @@ bool Solver::init(std::string const & dimacs, Settings const & settings) {
         } return s;
     };
 
-    char const * raw = dimacs.c_str();
+    char const * raw = cnf.c_str();
     u32 varCnt;
     u32 clauseCnt;
 
@@ -60,30 +60,30 @@ bool Solver::init(std::string const & dimacs, Settings const & settings) {
     } skipWS(raw);
 
 
-    Solver::cdb = ClauseDB {varCnt, clauseCnt};
+    solver::cdb = ClauseDB {varCnt, clauseCnt};
 
     u32 i = 0;
     while (*raw != '\0' && i < clauseCnt) {
         for (u32 j = 0; j < varCnt; j += 1) {
-            Solver::cdb.set(i, j, ternary(raw));
+            solver::cdb.set(i, j, ternary(raw));
         } skipWS(raw);
         i += 1;
     }
 
     if (i != clauseCnt) {
-        Solver::cdb = {};
+        solver::cdb = {};
         return false;
     }
 
     return true;
 }
 
-void Solver::reset() {
-    Solver::cdb = {};
-    Solver::settings = {};
+void solver::reset() {
+    solver::cdb = {};
+    solver::settings = {};
 }
 
-Solver::Result Solver::solve() {
+solver::Result solver::solve() {
     STTStack stack;
     // todo! estimate worst case scenario ST depth
     // to avoid having to reallocate / move every single node
