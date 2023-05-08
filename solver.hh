@@ -1,8 +1,29 @@
 #pragma once
 #include "common.hh"
-#include "mat.hh"
+#include "vec.hh"
 #include <vector>
 #include <string>
+
+struct ClauseDB {
+    u64 * clauses;
+    u32 clauseCnt;
+    u32 varCnt;
+
+    ClauseDB() = default;
+    ClauseDB(ClauseDB const &) = default;
+    ClauseDB& operator = (ClauseDB&&) noexcept;
+    ClauseDB(u32 varCnt, u32 clauseCnt) noexcept;
+    ~ClauseDB();
+
+    inline TerVecSlice operator [] (u32 i) noexcept {
+        return {
+            clauses + (varCnt / 32 + 1) * i,
+            (varCnt / 32 + 1),
+            varCnt
+        };
+    }
+};
+
 
 struct CDBView {
     BinVec varVis;
@@ -22,6 +43,8 @@ struct STTNode {
     bool tryNextVal(); // if it didn't work for both values of the chosen var - return false
     void chooseBranchVar();
 };
+
+using STTStack = std::vector<STTNode>;
 
 struct Solver {
     struct Settings {
@@ -45,17 +68,11 @@ struct Solver {
         } value;
     };
 
-    using ClauseDB = TerMat;
-    using Clause = TerVec;
+    static bool init(std::string const & dimacs, Settings const & settings);
+    static void reset();
+    static Result solve();
 
-    Solver() = default;
-    Solver (std::string const & dimacs, Settings const & settings) noexcept(false);
-    Result solve();
-
-    static u32 varCnt; // immutable
-    static u32 clauseCnt; // immutable
-
-    Settings settings;
-    static ClauseDB cdb; // immutable
-    std::vector<STTNode> STTStack;
+    static ClauseDB cdb;
+    static Settings settings;
+    static STTStack stack;
 };

@@ -1,15 +1,15 @@
 #include "vec.hh"
 
 BinVec::BinVec(u32 len) :
-    BinVecView {
-        (u64 *) malloc ((len / 64 + 1) * sizeof(u64)),
+    BinVecSlice {
+        (u64 *) calloc ((len / 64 + 1), sizeof(u64)),
         len / 64 + 1,
         len
     }
 {}
 
 BinVec::BinVec(u32 len, bool value) :
-    BinVecView {
+    BinVecSlice {
         (u64 *) malloc ((len / 64 + 1) * sizeof(u64)),
         len / 64 + 1,
         len
@@ -19,17 +19,17 @@ BinVec::BinVec(u32 len, bool value) :
 }
 
 TerVec::TerVec(u32 len) :
-    TerVecView {
-        (u64 *) malloc ((len / 32 + 1) * sizeof(u64)),
+    TerVecSlice {
+        (u64 *) calloc ((len / 32 + 1), sizeof(u64)),
         len / 32 + 1,
         len
-    } 
+    }
 {}
 
 BinVec::~BinVec() {
-    free(words);
+    if (words) free(words);
 }
 
 TerVec::~TerVec() {
-    free(words);
+    if (words) free(words);
 }

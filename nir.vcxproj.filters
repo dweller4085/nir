@@ -21,9 +21,6 @@
     <ClCompile Include="vec.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mat.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="solver.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -33,9 +30,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="solver.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mat.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common.hh">
