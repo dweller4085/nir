@@ -1,5 +1,7 @@
 #include "solver.hh"
 
+ClauseDB Solver::cdb {};
+
 ClauseDB::ClauseDB(u32 varCnt, u32 clauseCnt) noexcept:
     clauseCnt {clauseCnt},
     varCnt {varCnt},
@@ -26,5 +28,3 @@ ClauseDB& ClauseDB::operator = (ClauseDB&& other) noexcept {
 void CDBView::apply(u32 var) {
 
 }
-
-ClauseDB Solver::cdb {};

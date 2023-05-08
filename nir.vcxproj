@@ -132,10 +132,13 @@
     <ClCompile Include="cdb.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="solver.cc" />
+    <ClCompile Include="stt.cc" />
     <ClCompile Include="vec.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cdb.hh" />
     <ClInclude Include="common.hh" />
+    <ClInclude Include="stt.hh" />
     <ClInclude Include="vec.hh" />
     <ClInclude Include="solver.hh" />
   </ItemGroup>
