@@ -22,3 +22,9 @@ ClauseDB& ClauseDB::operator = (ClauseDB&& other) noexcept {
     other.clauses = nullptr;
     return *this;
 }
+
+void CDBView::apply(u32 var) {
+
+}
+
+ClauseDB Solver::cdb {};

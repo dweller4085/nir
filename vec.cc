@@ -89,9 +89,10 @@ BinVec::BinVec(BinVec&& other) noexcept:
 
 TerVec::TerVec(TerVec&& other) noexcept:
     TerVecSlice {
-    other.words,
-    other.wordCnt,
-    other.len
-} {
+        other.words,
+        other.wordCnt,
+        other.len
+    }
+{
     other.words = nullptr;
 }

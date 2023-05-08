@@ -81,6 +81,9 @@ void Solver::reset() {
 
 Solver::Result Solver::solve() {
     STTStack stack;
+    // TODO estimate worst case scenario ST depth
+    // to avoid having to reallocate / move every single node
+    // in the middle of the solving process
     stack.vec.reserve(128);
     stack.push(STTNode {});
 
@@ -88,8 +91,8 @@ Solver::Result Solver::solve() {
         STTNode& current = stack.top();
 
         if (current.isMarked) {
-            if (current.tryNextVal()) {
-                stack.push(current);
+            if (current.tryNextValue()) {
+                stack.push(STTNode::nextAfter(current));
             } else {
                 // both values have been tried, no sat in this branch
                 stack.pop();
@@ -112,7 +115,13 @@ Solver::Result Solver::solve() {
     return Result {Result::Stats {}, Result::Unsat, {.unsat {"unsat"}}};
 }
 
-bool STTNode::tryNextVal() {
+STTNode STTNode::nextAfter(STTNode const & current) {
+    auto next = STTNode {current};
+    next.view.apply(current.branchVar);
+    return next;
+}
+
+bool STTNode::tryNextValue() {
     bool exhaustedVals = false;
 
     if (branchVar < 0) {
@@ -152,11 +161,4 @@ bool STTNode::isSAT() const {
     return {};
 }
 
-
-
-
-
-
-
-ClauseDB Solver::cdb {};
 Solver::Settings Solver::settings {};
