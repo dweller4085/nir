@@ -24,15 +24,3 @@ struct ClauseDB {
         // todo!
     }
 };
-
-struct CDBView {
-    BinVec varVis;
-    BinVec clauseVis;
-    ClauseDB const& cdb;
-    /*-------------*/
-    CDBView(ClauseDB const& cdb): varVis {cdb.varCnt, 1}, clauseVis {cdb.clauseCnt, 1}, cdb {cdb} {}
-    CDBView(CDBView const &) = default;
-    CDBView(CDBView&&) = default;
-    ~CDBView() = default;
-    void apply(u32 var); // F|A application from the book? Instead of manually setting Vis
-};

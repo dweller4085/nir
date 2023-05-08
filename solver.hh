@@ -25,43 +25,15 @@ struct Solver {
         } value;
     };
 
-    static bool init(std::string const & dimacs, Settings const & settings);
+    static bool init(std::string const & cnf, Settings const & settings);
     static void reset();
     static Result solve();
 
-    static ClauseDB cdb;
-    static Settings settings;
+private:
+    static ClauseDB theClauseDB;
+    static Settings theSettings;
+
+public:
+    static ClauseDB const& cdb;
+    static Settings const& settings;
 };
-
-/*
-namespace solver {
-    struct Settings {
-        u64 timeout_ms;
-    };
-
-    struct Result {
-        struct Stats {
-            uint64_t time_ms;
-        } stats;
-
-        enum {
-            Sat,
-            Unsat,
-            Aborted,
-        } type;
-
-        struct {
-            TerVec sat;
-            char const * unsat;
-            char const * aborted;
-        } value;
-    };
-
-    extern bool init(std::string const & dimacs, Settings const & settings);
-    extern void reset();
-    extern Result solve();
-
-    extern ClauseDB cdb;
-    extern Settings settings;
-}
-*/

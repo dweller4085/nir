@@ -1,11 +1,12 @@
-#include "solver.hh"
 #include "stt.hh"
 
-Solver::Settings Solver::settings {};
-ClauseDB Solver::cdb {};
+Solver::Settings Solver::theSettings {};
+ClauseDB Solver::theClauseDB {};
+Solver::Settings const& Solver::settings {theSettings};
+ClauseDB const& Solver::cdb {theClauseDB};
 
-bool Solver::init(std::string const & dimacs, Settings const & settings) {
-    Solver::settings = settings;
+bool Solver::init(std::string const & cnf, Settings const & settings) {
+    theSettings = settings;
 
     auto static constexpr isWS = [](char const * s) -> bool {
         return {*s == ' ' || *s == '\n'};
@@ -41,7 +42,7 @@ bool Solver::init(std::string const & dimacs, Settings const & settings) {
         } return s;
     };
 
-    char const * raw = dimacs.c_str();
+    char const * raw = cnf.c_str();
     u32 varCnt;
     u32 clauseCnt;
 
@@ -60,18 +61,18 @@ bool Solver::init(std::string const & dimacs, Settings const & settings) {
     } skipWS(raw);
 
 
-    Solver::cdb = ClauseDB {varCnt, clauseCnt};
+    theClauseDB = ClauseDB {varCnt, clauseCnt};
 
     u32 i = 0;
     while (*raw != '\0' && i < clauseCnt) {
         for (u32 j = 0; j < varCnt; j += 1) {
-            Solver::cdb.set(i, j, ternary(raw));
+            theClauseDB.set(i, j, ternary(raw));
         } skipWS(raw);
         i += 1;
     }
 
     if (i != clauseCnt) {
-        Solver::cdb = {};
+        theClauseDB = {};
         return false;
     }
 
@@ -79,8 +80,8 @@ bool Solver::init(std::string const & dimacs, Settings const & settings) {
 }
 
 void Solver::reset() {
-    Solver::cdb = {};
-    Solver::settings = {};
+    theClauseDB = {};
+    theSettings = {};
 }
 
 Solver::Result Solver::solve() {

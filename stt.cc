@@ -46,3 +46,7 @@ bool STTNode::unitPropagate() {
 bool STTNode::isSAT() const {
     return {};
 }
+
+void CDBView::apply(u32 var) {
+
+}
