@@ -7,10 +7,15 @@ struct BinVecSlice {
     u32 wordCnt;
     u32 len;
 
-    bool at(u32) const;
-    bool isEmpty() const;
-    void set(u32, bool);
-    s32 find(bool) const;
+    inline bool at(u32 i) const {
+        return _bittest64((__int64 *) words + i / 64, i % 64);
+    }
+    inline bool set(u32 i) {
+        return _bittestandset64((__int64 *) words + i / 64, i % 64);
+    }
+    inline bool clear(u32 i) {
+        return _bittestandreset64((__int64 *) words + i / 64, i % 64);
+    }
 };
 
 struct TerVecSlice {
@@ -18,7 +23,6 @@ struct TerVecSlice {
     u32 wordCnt;
     u32 len;
 
-    // the Def value is never actually stored in the vector
     enum class Value : u32 { False = 0b00, True = 0b01, Undef = 0b10, Def = 0b11 };
 
     inline Value at(u32 i) const noexcept {
