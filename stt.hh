@@ -27,4 +27,3 @@ struct STTStack {
     bool isEmpty() { return vec.empty(); }
     STTNode& top() { return vec.back(); }
 };
-

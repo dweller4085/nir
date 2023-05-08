@@ -2,6 +2,7 @@
 #include "stt.hh"
 
 Solver::Settings Solver::settings {};
+ClauseDB Solver::cdb {};
 
 bool Solver::init(std::string const & dimacs, Settings const & settings) {
     Solver::settings = settings;

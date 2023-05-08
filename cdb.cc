@@ -1,13 +1,9 @@
-#include "solver.hh"
-
-ClauseDB Solver::cdb {};
+#include "cdb.hh"
 
 ClauseDB::ClauseDB(u32 varCnt, u32 clauseCnt) noexcept:
     clauseCnt {clauseCnt},
     varCnt {varCnt},
-    wordsPerVar {clauseCnt / 32 + 1}
-{
-    // col-major
+    wordsPerVar {clauseCnt / 32 + 1} {
     clauses = (u64 *) calloc(wordsPerVar * varCnt, sizeof(u64));
 }
 

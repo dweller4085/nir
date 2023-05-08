@@ -13,8 +13,7 @@ BinVec::BinVec(u32 len, bool value):
         (u64 *) malloc ((len / 64 + 1) * sizeof(u64)),
         len / 64 + 1,
         len
-    }
-{
+    } {
     int static constexpr fill[2] {
         0x00,
         0xFF
@@ -36,8 +35,7 @@ TerVec::TerVec(u32 len, Value value):
         (u64 *) malloc ((len / 32 + 1) * sizeof(u64)),
         len / 32 + 1,
         len
-    }
-{
+    } {
     u64 static constexpr fill[3] {
         0x0000000000000000,
         0x5555555555555555,
@@ -62,8 +60,7 @@ BinVec::BinVec(BinVec const & other) noexcept:
         (u64 *) malloc(other.wordCnt * sizeof(u64)),
         other.wordCnt,
         other.len
-    }
-{
+    } {
     memcpy(words, other.words, wordCnt * sizeof(u64));
 }
 
@@ -72,8 +69,7 @@ TerVec::TerVec(TerVec const & other) noexcept:
         (u64 *) malloc(other.wordCnt * sizeof(u64)),
         other.wordCnt,
         other.len
-    }
-{
+    } {
     memcpy(words, other.words, wordCnt * sizeof(u64));
 }
 
@@ -82,8 +78,7 @@ BinVec::BinVec(BinVec&& other) noexcept:
         other.words,
         other.wordCnt,
         other.len
-    }
-{
+    } {
     other.words = nullptr;
 }
 
@@ -92,7 +87,6 @@ TerVec::TerVec(TerVec&& other) noexcept:
         other.words,
         other.wordCnt,
         other.len
-    }
-{
+    } {
     other.words = nullptr;
 }
