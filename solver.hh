@@ -29,6 +29,8 @@ struct CDBView {
     BinVec varVis;
     BinVec clauseVis;
     CDBView();
+    CDBView(CDBView const &) = default;
+    ~CDBView() = default;
 };
 
 struct STTNode {

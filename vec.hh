@@ -50,11 +50,13 @@ struct BinVec : BinVecSlice {
     BinVec() = default;
     BinVec(u32 len);
     BinVec(u32 len, bool value);
+    BinVec(BinVec const &);
     ~BinVec();
 };
 
 struct TerVec : TerVecSlice {
     TerVec() = default;
     TerVec(u32 len);
+    TerVec(TerVec const &);
     ~TerVec();
 };

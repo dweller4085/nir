@@ -33,3 +33,23 @@ BinVec::~BinVec() {
 TerVec::~TerVec() {
     if (words) free(words);
 }
+
+BinVec::BinVec(BinVec const & other) :
+    BinVecSlice {
+        (u64 *) malloc(other.wordCnt * sizeof(u64)),
+        other.wordCnt,
+        other.len
+    }
+{
+    memcpy(words, other.words, wordCnt * sizeof(u64));
+}
+
+TerVec::TerVec(TerVec const & other) :
+    TerVecSlice {
+        (u64 *) malloc(other.wordCnt * sizeof(u64)),
+        other.wordCnt,
+        other.len
+    }
+{
+    memcpy(words, other.words, wordCnt * sizeof(u64));
+}
