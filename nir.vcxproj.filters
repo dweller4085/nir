@@ -24,6 +24,9 @@
     <ClCompile Include="solver.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cdb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vec.hh">

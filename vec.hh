@@ -18,17 +18,16 @@ struct TerVecSlice {
     u32 wordCnt;
     u32 len;
 
+    // the Def value is never actually stored in the vector
     enum class Value : u32 { False = 0b00, True = 0b01, Undef = 0b10, Def = 0b11 };
 
     inline Value at(u32 i) const noexcept {
         return TerVecSlice::Value {(words[i / 32] >> ((i % 32) * 2)) & u64 { 3 }};
     }
-
     inline void set(u32 i, Value v) noexcept {
         u64 const j = (i % 32) * 2;
         words[i / 32] = words[i / 32] & ~(u64 {3} << j) | (u64)v << j;
     }
-
     inline s32 findUndef() const noexcept {
         // should take into consideration possible leftover garbage in the last word
         // although if we don't touch those bits, they will stay at zero, and so won't
@@ -46,17 +45,19 @@ struct TerVecSlice {
 };
 
 struct BinVec : BinVecSlice {
-    //BinVec(BinVecSlice);
     BinVec() = default;
     BinVec(u32 len);
     BinVec(u32 len, bool value);
-    BinVec(BinVec const &);
+    BinVec(BinVec const &) noexcept;
+    BinVec(BinVec&&) noexcept;
     ~BinVec();
 };
 
 struct TerVec : TerVecSlice {
     TerVec() = default;
     TerVec(u32 len);
-    TerVec(TerVec const &);
+    TerVec(u32 len, Value value);
+    TerVec(TerVec const &) noexcept;
+    TerVec(TerVec&&) noexcept;
     ~TerVec();
 };

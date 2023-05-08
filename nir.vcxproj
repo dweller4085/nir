@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cdb.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="solver.cc" />
     <ClCompile Include="vec.cc" />

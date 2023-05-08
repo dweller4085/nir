@@ -16,6 +16,6 @@ m 4
 
 int main (int argc, char ** argv) {
     Solver::init(std::string {cnf}, Solver::Settings {});
-
+        
     return {0};
 }

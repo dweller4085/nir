@@ -2,7 +2,6 @@
 
 bool Solver::init(std::string const & dimacs, Settings const & settings) {
     Solver::settings = settings;
-    Solver::stack = std::vector<STTNode> {STTNode {}};
 
     auto static constexpr isWS = [](char const * s) -> bool {
         return {*s == ' ' || *s == '\n'};
@@ -62,7 +61,7 @@ bool Solver::init(std::string const & dimacs, Settings const & settings) {
     u32 i = 0;
     while (*raw != '\0' && i < clauseCnt) {
         for (u32 j = 0; j < varCnt; j += 1) {
-            Solver::cdb[i].set(j, ternary(raw));
+            Solver::cdb.set(i, j, ternary(raw));
         } skipWS(raw);
         i += 1;
     }
@@ -78,24 +77,26 @@ bool Solver::init(std::string const & dimacs, Settings const & settings) {
 void Solver::reset() {
     Solver::cdb = {};
     Solver::settings = {};
-    Solver::stack = {};
 }
 
 Solver::Result Solver::solve() {
-    while (!stack.empty()) {
-        STTNode& current = stack.back();
+    STTStack stack;
+    stack.push(STTNode {});
+
+    while (!stack.isEmpty()) {
+        STTNode& current = stack.top();
 
         if (current.isMarked) {
             if (current.tryNextVal()) {
-                stack.push_back(STTNode::nextAfter(current));
+                stack.push(STTNode::nextAfter(current));
             } else {
                 // both values have been tried, no sat in this branch
-                stack.pop_back();
+                stack.pop();
             }
         }
         else if (!current.unitPropagate()) {
             // ran into a conflict in UP
-            stack.pop_back();
+            stack.pop();
         }
         else if (current.isSAT()) {
             return Result {Result::Stats {}, Result::Sat, {.sat {current.model}}};
@@ -109,11 +110,6 @@ Solver::Result Solver::solve() {
     // the whole ST was traversed (save the UP jumps) - unsat
     return Result {Result::Stats {}, Result::Unsat, {.unsat {"unsat"}}};
 }
-
-CDBView::CDBView():
-    varVis {Solver::cdb.varCnt, 1},
-    clauseVis {Solver::cdb.clauseCnt, 1}
-{}
 
 bool STTNode::tryNextVal() {
     bool exhaustedVals = false;
@@ -131,15 +127,6 @@ bool STTNode::tryNextVal() {
     }
 
     return !exhaustedVals;
-}
-
-void STTNode::chooseBranchVar() {
-    branchVar = model.findUndef();
-}
-
-STTNode STTNode::nextAfter(STTNode const & current) {
-    STTNode next {current};
-    return next;
 }
 
 bool STTNode::unitPropagate() {
@@ -169,28 +156,6 @@ bool STTNode::isSAT() const {
 
 
 
-ClauseDB::ClauseDB(u32 varCnt, u32 clauseCnt) noexcept : clauseCnt {clauseCnt}, varCnt {varCnt} {
-    // doesn't really have to be 64B (cacheline P .3) aligned.
-    // what's the point if the layout anyway is row-major.
-    // TODO try make a column-major layout, since we're predominantly working with columns
-    usize size = (varCnt / 32 + 1) * clauseCnt * sizeof(u64);
-    clauses = (u64 *) malloc(size);
-    memset(clauses, 0, size);
-}
-
-ClauseDB::~ClauseDB() {
-    if (clauses) free(clauses);
-}
-
-ClauseDB& ClauseDB::operator = (ClauseDB&& other) noexcept {
-    if (clauses) free(clauses);
-    clauses = other.clauses;
-    clauseCnt = other.clauseCnt;
-    varCnt = other.varCnt;
-    other.clauses = nullptr;
-    return *this;
-}
 
 ClauseDB Solver::cdb {};
 Solver::Settings Solver::settings {};
-std::vector<STTNode> Solver::stack {};
