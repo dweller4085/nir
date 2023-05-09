@@ -2,6 +2,7 @@
 
 STTNode STTNode::nextAfter(STTNode const & current) {
     auto next = STTNode {current};
+    // [NOTE A] here as well. maybe make the chooseNextVar actually return a var?
     next.view.apply(current.branchVar, current.model.at(current.branchVar));
     return next; // nrvo hopefully
 }
@@ -26,23 +27,23 @@ bool STTNode::tryNextValue() {
 }
 
 bool STTNode::unitPropagate() {
-    /*
-    s32 unitClause;
-    while ((unitClause = view.findUnit()) >= 0) {
-        u32 var = unitClause.find(TerVec::Value::Def);
-        model.set(var, view.at(unitClause, var));
-        // ... and here
-        // just check if there are i: view[i][j] = !unitClause[var]
-        // if there are none - no conflict
-        view.varVis.set(var, 0);
-        view.clauseVis.set(unitClause, 0);
+    while (true) {
+        auto [clause, var] = view.findUnit();
+        if (clause < 0) break;
+
+        // should probably do it in one STTNode::apply or something [NOTE A]
+        model.set(var, Solver::cdb.at(clause, var));
+        view.apply(var, Solver::cdb.at(clause, var));
+
+        if (hasConflict()) return false;
     }
-    */
+    
     return true;
 }
 
 bool STTNode::isSAT() const {
     // probably when view.clauseVis is all zeroes
+    // because then it would probably mean that all clauses are T === SAT
     return view.clauseVis.isAllZeros();
 }
 
@@ -69,6 +70,7 @@ bool STTNode::hasConflict() const {
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
+        // maybe make a method with view.at(i, j)? maybe
         bool isEmpty = true;
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
             if (!view.varVis.at(i)) continue;
@@ -81,4 +83,8 @@ bool STTNode::hasConflict() const {
     }
 
     return false;
+}
+
+CDBView::Unit CDBView::findUnit() const {
+
 }
