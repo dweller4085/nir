@@ -1,3 +1,4 @@
+#include "solver.hh"
 #include "stt.hh"
 
 Solver::Settings Solver::theSettings {};

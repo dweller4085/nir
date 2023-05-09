@@ -17,10 +17,11 @@ struct ClauseDB {
         *word &= ~(u64 {0b11} << j);
         *word |= (u64) val << j;
     }
-    TerVec::Value at(u32 clause, u32 var) const {
-        // todo!
-    }
-    TerVecSlice col(u32 var) {
-        // todo!
+    TerVecSlice column(u32 var) const {
+        return {
+            clauses + wordsPerVar * var,
+            wordsPerVar,
+            clauseCnt
+        };
     }
 };
