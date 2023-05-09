@@ -6,7 +6,7 @@ struct CDBView {
     BinVec varVis {Solver::cdb.varCnt, 1};
     BinVec clauseVis {Solver::cdb.clauseCnt, 1};
     /*-------------*/
-    void apply(u32 var, TerVec::Value value); // F|A application from the book? Instead of manually setting Vis
+    void apply(u32 var, TerVec::Value value); // F <- F|A application
 };
 
 struct STTNode {

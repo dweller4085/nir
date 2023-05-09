@@ -26,12 +26,7 @@ bool STTNode::tryNextValue() {
 }
 
 bool STTNode::unitPropagate() {
-    
-    //
-    
     /*
-    // catch the conflicts here ...
-    last changed var - branchVar - check for orthogonal to it clauses
     s32 unitClause;
     while ((unitClause = view.findUnit()) >= 0) {
         u32 var = unitClause.find(TerVec::Value::Def);
@@ -47,7 +42,8 @@ bool STTNode::unitPropagate() {
 }
 
 bool STTNode::isSAT() const {
-    return {};
+    // probably when view.clauseVis is all zeroes
+    return view.clauseVis.isAllZeros();
 }
 
 void CDBView::apply(u32 var, TerVec::Value value) {
@@ -67,5 +63,22 @@ void CDBView::apply(u32 var, TerVec::Value value) {
 }
 
 bool STTNode::hasConflict() const {
+    // doesn't really need to know the last applied assignment, does it?
+    // has to go through each visible clause in view to see if there are any empty ones
+    // ... again a simple implementation: just searching for the empty clause
+    for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+        if (!view.clauseVis.at(i)) continue;
 
+        bool isEmpty = true;
+        for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
+            if (!view.varVis.at(i)) continue;
+            if (Solver::cdb.at(i, j) != TerVec::Value::Undef) {
+                isEmpty = false;
+            }
+        }
+
+        if (isEmpty) return true;
+    }
+
+    return false;
 }

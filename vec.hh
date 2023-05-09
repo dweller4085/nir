@@ -16,6 +16,10 @@ struct BinVecSlice {
     inline bool clear(u32 i) {
         return _bittestandreset64((__int64 *) words + i / 64, i % 64);
     }
+    bool isAllZeros() const {
+        // check garbage at leftover bits
+        return {};
+    }
 };
 
 struct TerVecSlice {
