@@ -1,12 +1,13 @@
 #pragma once
-#include "common.hh"
 #include <intrin.h>
+#include <string>
+#include "common.hh"
 
 struct BinVecSlice {
     u64 * words;
     u32 wordCnt;
     u32 len;
-
+    /*--------------*/
     inline bool at(u32 i) const {
         return _bittest64((__int64 *) words + i / 64, i % 64);
     }
@@ -37,9 +38,8 @@ struct TerVecSlice {
     u64 * words;
     u32 wordCnt;
     u32 len;
-
+    /*-------------*/
     enum class Value : u32 { False = 0b00, True = 0b01, Undef = 0b10, Def = 0b11 };
-
     inline Value at(u32 i) const noexcept {
         return TerVecSlice::Value {(words[i / 32] >> ((i % 32) * 2)) & u64 { 3 }};
     }
@@ -70,6 +70,15 @@ struct BinVec : BinVecSlice {
     BinVec(BinVec const &) noexcept;
     BinVec(BinVec&&) noexcept;
     ~BinVec();
+    operator std::string () const {
+        auto out = std::string {};
+        for (u32 i = 0; i < len; i += 1) {
+            switch (at(i)) {
+                case false: out += '0'; break;
+                case true: out += '1'; break;
+            }
+        } return out;
+    }
 };
 
 struct TerVec : TerVecSlice {
@@ -79,4 +88,14 @@ struct TerVec : TerVecSlice {
     TerVec(TerVec const &) noexcept;
     TerVec(TerVec&&) noexcept;
     ~TerVec();
+    operator std::string () const {
+        auto out = std::string {};
+        for (u32 i = 0; i < len; i += 1) {
+            switch (at(i)) {
+                case Value::False: out += '0'; break;
+                case Value::True: out += '1'; break;
+                case Value::Undef: out += '-'; break;
+            }
+        } return out;
+    }
 };

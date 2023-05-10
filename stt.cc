@@ -74,7 +74,7 @@ bool STTNode::hasConflict() const {
         // [NOTE B] maybe make a method with view.at(i, j)? maybe
         bool isEmpty = true;
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-            if (!view.varVis.at(i)) continue;
+            if (!view.varVis.at(j)) continue;
             if (Solver::cdb.at(i, j) != TerVec::Value::Undef) {
                 isEmpty = false;
                 break;

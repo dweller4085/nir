@@ -1,17 +1,21 @@
 #pragma once
 #include <vector>
+#include <string>
 #include "solver.hh"
 
 struct CDBView {
     BinVec varVis {Solver::cdb.varCnt, 1};
     BinVec clauseVis {Solver::cdb.clauseCnt, 1};
-    /*-------------*/
-    struct Unit {
-        s32 clause;
-        u32 var;
-    };
+    /*-----------------------------------------*/
+    struct Unit { s32 clause; u32 var; };
     void apply(u32 var, TerVec::Value value); // F <- F|A application
     Unit findUnit() const;
+    operator std::string () const {
+        return std::string {} +
+            "varVis: " + (std::string) varVis + "\n"
+            "clauseVis:" + (std::string) clauseVis + "\n"
+        ;
+    }
 };
 
 struct STTNode {
