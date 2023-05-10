@@ -20,6 +20,7 @@ BinVec::BinVec(u32 len, bool value):
     };
 
     memset(words, fill[(int)value], wordCnt * sizeof(u64));
+    words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (64 - len % 64);
 }
 
 TerVec::TerVec(u32 len):
@@ -37,14 +38,13 @@ TerVec::TerVec(u32 len, Value value):
         len
     } {
     u64 static constexpr fill[3] {
-        0x0000000000000000,
-        0x5555555555555555,
-        0xAAAAAAAAAAAAAAAA
+        0x00,
+        0x55,
+        0xAA
     };
 
-    for (u32 i = 0; i < wordCnt - 1; i += 1) {
-        words[i] = fill[(u64)value];
-    } words[wordCnt - 1] = fill[(u64)value] & 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
+    memset(words, fill[(int)value], wordCnt * sizeof(u64));
+    words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
 }
 
 BinVec::~BinVec() {

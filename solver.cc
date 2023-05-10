@@ -104,7 +104,7 @@ Solver::Result Solver::solve() {
                 stack.pop();
             }
         }
-        else if (!current.hasConflict() && current.unitPropagate()) {
+        else if (!current.hasConflict() && !current.unitPropagate()) {
             stack.pop();
         }
         else if (current.isSAT()) {

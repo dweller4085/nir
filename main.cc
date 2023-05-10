@@ -4,12 +4,12 @@
 
 
 char const * const cnf {R"(
-n 5
+n 3
 m 4
-01001
-11-11
-100--
-----1
+01-
+0-1
+-11
+-00
 )"};
 
 int main (int argc, char ** argv) {

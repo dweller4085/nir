@@ -16,9 +16,20 @@ struct BinVecSlice {
     inline bool clear(u32 i) {
         return _bittestandreset64((__int64 *) words + i / 64, i % 64);
     }
-    bool isAllZeros() const {
-        // check garbage at leftover bits
-        return {};
+    inline bool isAllZeros() const {
+        u64 s = 0;
+        for (u32 i = 0; i < wordCnt; i += 1) {
+            s |= words[i];
+        }
+
+        // mask off garbage at leftover bits
+        // (if there ever is garbage with current usage)
+        // we only ever set individual bits, never shift or xor or anything
+        // so those leftover bits are stuck as 0 from the calloc to the end
+        // AND we're explicitely zeroing out them at the creation
+        //s |= words[wordCnt - 1] & (0xFFFFFFFFFFFFFFFF >> (64 - len % 64));
+
+        return s == 0;
     }
 };
 

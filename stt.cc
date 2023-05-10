@@ -4,6 +4,7 @@ STTNode STTNode::nextAfter(STTNode const & current) {
     auto next = STTNode {current};
     // [NOTE A] here as well. maybe make the chooseNextVar actually return a var?
     next.view.apply(current.branchVar, current.model.at(current.branchVar));
+    next.isMarked = false;
     return next; // nrvo hopefully
 }
 
@@ -70,12 +71,13 @@ bool STTNode::hasConflict() const {
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
-        // maybe make a method with view.at(i, j)? maybe
+        // [NOTE B] maybe make a method with view.at(i, j)? maybe
         bool isEmpty = true;
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
             if (!view.varVis.at(i)) continue;
             if (Solver::cdb.at(i, j) != TerVec::Value::Undef) {
                 isEmpty = false;
+                break;
             }
         }
 
@@ -86,8 +88,6 @@ bool STTNode::hasConflict() const {
 }
 
 CDBView::Unit CDBView::findUnit() const {
-
-
     // .. simplest bare minimum implementation
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!clauseVis.at(i)) continue;
@@ -97,7 +97,7 @@ CDBView::Unit CDBView::findUnit() const {
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
             if (!varVis.at(j)) continue;
             if (Solver::cdb.at(i, j) != TerVec::Value::Undef) {
-                s += 1;
+                if ((s += 1) > 1) break;
                 k = j;
             }
         }
