@@ -87,4 +87,26 @@ bool STTNode::hasConflict() const {
 
 CDBView::Unit CDBView::findUnit() const {
 
+
+    // .. simplest bare minimum implementation
+    for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+        if (!clauseVis.at(i)) continue;
+
+        u32 k = 0;
+        s32 s = 0;
+        for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
+            if (!varVis.at(j)) continue;
+            if (Solver::cdb.at(i, j) != TerVec::Value::Undef) {
+                s += 1;
+                k = j;
+            }
+        }
+
+        if (s == 1) {
+            return Unit {(s32)i, k};
+        }
+    }
+
+    // sentinel 'no unit found'
+    return Unit {-1, 0};
 }
