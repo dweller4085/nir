@@ -7,9 +7,9 @@ TerVec::Value STTNode::nextBVValue() const {
     
     if (branchVar >= 0) {
         switch (model.at(branchVar)) {
-            case Undef: nextValue = True; break;
-            case True: nextValue = False; break;
-            case False: nextValue = Undef; break;
+            case Undef: nextValue = False; break;
+            case False: nextValue = True; break;
+            case True: nextValue = Undef; break;
         }
     }
 
