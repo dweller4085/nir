@@ -43,7 +43,7 @@ TerVec::TerVec(u32 len, Value value):
         0xAA
     };
 
-    memset(words, fill[(int)value], wordCnt * sizeof(u64));
+    memset(words, fill[(u64)value], wordCnt * sizeof(u64));
     words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
 }
 
@@ -89,4 +89,25 @@ TerVec::TerVec(TerVec&& other) noexcept:
         other.len
     } {
     other.words = nullptr;
+}
+
+BinVec::operator std::string () const {
+    auto out = std::string {};
+    for (u32 i = 0; i < len; i += 1) {
+        switch (at(i)) {
+            case false: out += '0'; break;
+            case true: out += '1'; break;
+        }
+    } return out;
+}
+
+TerVec::operator std::string () const {
+    auto out = std::string {};
+    for (u32 i = 0; i < len; i += 1) {
+        switch (at(i)) {
+            case Value::False: out += '0'; break;
+            case Value::True: out += '1'; break;
+            case Value::Undef: out += '-'; break;
+        }
+    } return out;
 }

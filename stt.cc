@@ -1,41 +1,34 @@
 #include "stt.hh"
 
-STTNode STTNode::nextAfter(STTNode const & current) {
+STTNode STTNode::nextAfter(STTNode const & current, TerVec::Value nextValue) {
     auto next = STTNode {current};
-    // [NOTE A] here as well. maybe make the chooseNextVar actually return a var?
-    next.view.apply(current.branchVar, current.model.at(current.branchVar));
+    next.applyAssignment(current.branchVar, nextValue);
     next.isMarked = false;
     return next; // nrvo hopefully
 }
 
-bool STTNode::tryNextValue() {
-    bool exhaustedVals = false;
-
-    if (branchVar < 0) {
-        exhaustedVals = true;
-    }
-    else {
+TerVec::Value STTNode::nextBVValue() const {
+    using TerVec::Value::Undef, TerVec::Value::False, TerVec::Value::True;
+    
+    TerVec::Value nextValue {Undef};
+    
+    if (branchVar >= 0) {
         switch (model.at(branchVar)) {
-            using TerVec::Value::Undef, TerVec::Value::False, TerVec::Value::True;
-
-            case Undef: model.set(branchVar, False); break;
-            case False: model.set(branchVar, True); break;
-            case True: exhaustedVals = true; break;
+            case Undef: nextValue = True; break;
+            case True: nextValue = False; break;
+            case False: nextValue = Undef; break;
         }
     }
 
-    return !exhaustedVals;
+    return nextValue;
 }
 
 bool STTNode::unitPropagate() {
     while (true) {
-        auto [clause, var] = view.findUnit();
+        auto [clause, var] = findUnit();
         if (clause < 0) break;
 
-        // should probably do it in one STTNode::apply or something [NOTE A]
-        model.set(var, Solver::cdb.at(clause, var));
-        view.apply(var, Solver::cdb.at(clause, var));
-
+        applyAssignment(var, Solver::cdb.at(clause, var));
         if (hasConflict()) return false;
     }
     
@@ -48,22 +41,6 @@ bool STTNode::isSAT() const {
     return view.clauseVis.isAllZeros();
 }
 
-void CDBView::apply(u32 var, TerVec::Value value) {
-    // remove this var from consideration - it either evaluates to F in the clause
-    // or makes the whole clause T
-    varVis.clear(var);
-    
-    // remove all clauses from consideration that are parallel to (var = value)
-    // i.e. the clauses that become T with this var assignment
-    // ... simplest implementation for now to just get something working at all
-    auto const col = Solver::cdb.column(var);
-    for (u32 i = 0; i < col.len; i += 1) {
-        if (col.at(i) == value) {
-            clauseVis.clear(i);
-        }
-    }
-}
-
 bool STTNode::hasConflict() const {
     // doesn't really need to know the last applied assignment, does it?
     // has to go through each visible clause in view to see if there are any empty ones
@@ -71,11 +48,9 @@ bool STTNode::hasConflict() const {
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
-        // [NOTE B] maybe make a method with view.at(i, j)? maybe
         bool isEmpty = true;
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-            if (!view.varVis.at(j)) continue;
-            if (Solver::cdb.at(i, j) != TerVec::Value::Undef) {
+            if (view.varVis.at(j) && Solver::cdb.at(i, j) != TerVec::Value::Undef) {
                 isEmpty = false;
                 break;
             }
@@ -87,16 +62,15 @@ bool STTNode::hasConflict() const {
     return false;
 }
 
-CDBView::Unit CDBView::findUnit() const {
+STTNode::Unit STTNode::findUnit() const {
     // .. simplest bare minimum implementation
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
-        if (!clauseVis.at(i)) continue;
+        if (!view.clauseVis.at(i)) continue;
 
         u32 k = 0;
         s32 s = 0;
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-            if (!varVis.at(j)) continue;
-            if (Solver::cdb.at(i, j) != TerVec::Value::Undef) {
+            if (view.varVis.at(j) && Solver::cdb.at(i, j) != TerVec::Value::Undef) {
                 if ((s += 1) > 1) break;
                 k = j;
             }
@@ -109,4 +83,15 @@ CDBView::Unit CDBView::findUnit() const {
 
     // sentinel 'no unit found'
     return Unit {-1, 0};
+}
+
+void STTNode::applyAssignment(u32 var, TerVec::Value value) {
+    model.set(var, value);
+    view.varVis.clear(var);
+
+    for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+        if (Solver::cdb.at(i, var) == value && view.clauseVis.at(i)) {
+            view.clauseVis.clear(i);
+        }
+    }
 }

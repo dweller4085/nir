@@ -87,28 +87,25 @@ void Solver::reset() {
 
 Solver::Result Solver::solve() {
     STTStack stack;
-    // todo! estimate worst case scenario ST depth
-    // to avoid having to reallocate / move every single node
-    // in the middle of the solving process
-    stack.vec.reserve(128);
+
+    stack.vec.reserve(Solver::cdb.varCnt);
     stack.push(STTNode {});
 
     while (!stack.isEmpty()) {
         STTNode& current = stack.top();
 
         if (current.isMarked) {
-            if (current.tryNextValue()) {
-                stack.push(STTNode::nextAfter(current));
+            if (auto nextValue = current.nextBVValue(); nextValue != TerVec::Value::Undef) {
+                stack.push(STTNode::nextAfter(current, nextValue));
             } else {
-                // both values have been tried, no sat in this branch
                 stack.pop();
             }
         }
-        else if (!current.hasConflict() && !current.unitPropagate()) {
+        else if (current.hasConflict() || !current.unitPropagate()) {
             stack.pop();
         }
         else if (current.isSAT()) {
-            return Result {Result::Stats {}, Result::Sat, {.sat {current.model}}};
+            return {Result::Stats {}, Result::Sat, {.sat {current.model}}};
         }
         else {
             current.chooseBranchVar();
@@ -116,6 +113,5 @@ Solver::Result Solver::solve() {
         }
     }
 
-    // the whole ST was traversed (save the UP jumps) - unsat
-    return Result {Result::Stats {}, Result::Unsat, {.unsat {"unsat"}}};
+    return {Result::Stats {}, Result::Unsat, {.unsat {"unsat"}}};
 }
