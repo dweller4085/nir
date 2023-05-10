@@ -15,7 +15,6 @@ struct STTNode {
     bool isMarked {false};
     /*--------------------*/
     struct Unit { s32 clause; u32 var; };
-    static STTNode nextAfter(STTNode const& current, TerVec::Value nextValue);
     bool unitPropagate();
     bool isSAT() const;
     TerVec::Value nextBVValue() const;

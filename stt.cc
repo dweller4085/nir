@@ -1,12 +1,5 @@
 #include "stt.hh"
 
-STTNode STTNode::nextAfter(STTNode const & current, TerVec::Value nextValue) {
-    auto next = STTNode {current};
-    next.applyAssignment(current.branchVar, nextValue);
-    next.isMarked = false;
-    return next; // nrvo hopefully
-}
-
 TerVec::Value STTNode::nextBVValue() const {
     using TerVec::Value::Undef, TerVec::Value::False, TerVec::Value::True;
     
@@ -90,7 +83,7 @@ void STTNode::applyAssignment(u32 var, TerVec::Value value) {
     view.varVis.clear(var);
 
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
-        if (Solver::cdb.at(i, var) == value && view.clauseVis.at(i)) {
+        if (view.clauseVis.at(i) && Solver::cdb.at(i, var) == value) {
             view.clauseVis.clear(i);
         }
     }

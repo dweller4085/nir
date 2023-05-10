@@ -96,7 +96,9 @@ Solver::Result Solver::solve() {
 
         if (current.isMarked) {
             if (auto nextValue = current.nextBVValue(); nextValue != TerVec::Value::Undef) {
-                stack.push(STTNode::nextAfter(current, nextValue));
+                current.applyAssignment(current.branchVar, nextValue);
+                stack.push(STTNode {current});
+                stack.top().isMarked = false;
             } else {
                 stack.pop();
             }
