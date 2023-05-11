@@ -25,14 +25,15 @@ std::string generateRandomCnf(u32 varCnt, u32 clauseCnt, u32 seed, f32 distr) {
 
 int main (int argc, char ** argv) {
 
-    auto cnf = generateRandomCnf(31, 5, 123, 0.333f);
-    Solver::init(cnf, Solver::Settings {});
-    std::cout << cnf << "\n";
-    std::cout << (std::string) Solver::solve() << "\n";
+    //auto cnf = generateRandomCnf(31, 5, 123, 0.333f);
+    //Solver::init(cnf, Solver::Settings {});
+    //std::cout << cnf << "\n";
+    //std::cout << (std::string) Solver::solve() << "\n";
 
-    //for (int i = 0; i < 10; i += 1) {
-    //    Solver::init(generateRandomCnf(64, 64), Solver::Settings {});
-    //    auto result = Solver::solve();
-    //    std::cout << (std::string) result << "\n";
-    //}
+    for (u32 i = 0; i < 10; i += 1) {
+        auto cnf = generateRandomCnf(31, 31, i, 0.15f);
+        Solver::init(cnf, Solver::Settings {});
+        std::cout << cnf << "\n";
+        std::cout << (std::string) Solver::solve() << "\n";
+    }
 }
