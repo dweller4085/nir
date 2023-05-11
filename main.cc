@@ -15,5 +15,5 @@ m 4
 int main (int argc, char ** argv) {
     Solver::init(std::string {cnf}, Solver::Settings {});
     auto result = Solver::solve();
-    
+    std::cout << (std::string) result << "\n";
 }

@@ -1,3 +1,4 @@
+#include <chrono>
 #include "solver.hh"
 #include "stt.hh"
 
@@ -91,6 +92,8 @@ Solver::Result Solver::solve() {
     stack.vec.reserve(Solver::cdb.varCnt);
     stack.push(STTNode {});
 
+    auto start = std::chrono::steady_clock::now();
+
     while (!stack.isEmpty()) {
         STTNode& current = stack.top();
 
@@ -107,7 +110,8 @@ Solver::Result Solver::solve() {
             stack.pop();
         }
         else if (current.isSAT()) {
-            return {Result::Stats {}, Result::Sat, {.sat {current.model}}};
+            auto time = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start};
+            return {Result::Stats {.time_ms {time.count()}}, Result::Sat, {.sat {current.model}}};
         }
         else {
             current.chooseBranchVar();
@@ -115,5 +119,23 @@ Solver::Result Solver::solve() {
         }
     }
 
-    return {Result::Stats {}, Result::Unsat, {.unsat {"unsat"}}};
+    auto time = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start};
+    return {Result::Stats {.time_ms {time.count()}}, Result::Unsat, {.unsat {}}};
+}
+
+Solver::Result::operator std::string() const {
+    auto out = std::string {};
+    switch (type) {
+        case Solver::Result::Sat: {
+            out += "SAT: " + (std::string) value.sat;
+        } break;
+        case Solver::Result::Unsat: {
+            out += "UNSAT ";
+        } break;
+        case Solver::Result::Aborted: {
+            out += std::string {"Aborted: "} + value.aborted;
+        } break;
+    }
+
+    return out + "\n" + "Stats:\n\ttime: " + std::to_string(stats.time_ms) + "ms.";
 }

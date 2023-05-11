@@ -9,20 +9,22 @@ struct Solver {
     };
     struct Result {
         struct Stats {
-            uint64_t time_ms;
+            float time_ms;
         } stats;
 
-        enum {
+        enum Type {
             Sat,
             Unsat,
             Aborted,
         } type;
 
-        struct {
+        struct Value {
             TerVec sat;
-            char const * unsat;
+            s32 unsat;
             char const * aborted;
         } value;
+
+        operator std::string() const;
     };
 
     static bool init(std::string const & cnf, Settings const & settings);
