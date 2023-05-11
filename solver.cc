@@ -127,7 +127,7 @@ Solver::Result::operator std::string() const {
     auto out = std::string {};
     switch (type) {
         case Solver::Result::Sat: {
-            out += "SAT: " + (std::string) value.sat;
+            out += "SAT: " + (std::string) value.sat + "\nsanity check: " + std::to_string(Solver::sanityCheck(value.sat));
         } break;
         case Solver::Result::Unsat: {
             out += "UNSAT ";
@@ -138,4 +138,19 @@ Solver::Result::operator std::string() const {
     }
 
     return out + "\n" + "Stats:\n\ttime: " + std::to_string(stats.time_ms) + "ms.";
+}
+
+bool Solver::sanityCheck(TerVec const& model) {
+    for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+        u32 j = 0;
+        for (; j < Solver::cdb.varCnt; j += 1) {
+            if (Solver::cdb.at(i, j) == model.at(j)) break;
+        }
+
+        if (j == Solver::cdb.clauseCnt) {
+            return false;
+        }
+    }
+
+    return true;
 }

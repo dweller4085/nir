@@ -30,6 +30,7 @@ struct Solver {
     static bool init(std::string const & cnf, Settings const & settings);
     static void reset();
     static Result solve();
+    static bool sanityCheck(TerVec const& model);
 
 private:
     static ClauseDB theClauseDB;
