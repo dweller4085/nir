@@ -25,7 +25,7 @@ std::string generateRandomCnf(u32 varCnt, u32 clauseCnt, u32 seed, f32 distr) {
 
 int main (int argc, char ** argv) {
 
-    auto cnf = generateRandomCnf(31, 5, 123, 0.3f);
+    auto cnf = generateRandomCnf(31, 5, 123, 0.333f);
     Solver::init(cnf, Solver::Settings {});
     std::cout << cnf << "\n";
     std::cout << (std::string) Solver::solve() << "\n";
