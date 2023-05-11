@@ -37,9 +37,9 @@ int main (int argc, char ** argv) {
     u32 const nVars = 31;
     u32 const nClauses = 31;
     f32 const distr = .1f;
-    for (u32 i = 3; i == 3; i += 1) {
+    for (u32 i = 0; i < 10; i += 1) {
         auto cnf = generateRandomCnf(nVars, nClauses, i, distr);
-        Solver::init(cnf, Solver::Settings {});
+        Solver::init(cnf);
         std::cout << "cnf (" << nVars << ", " << nClauses << ", " << i << ", " << distr << "):\n";
         std::cout << cnf << "\n";
         std::cout << "result:\n" + (std::string) Solver::solve() << "\n\n\n";

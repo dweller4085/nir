@@ -22,6 +22,11 @@ bool STTNode::unitPropagate() {
         if (clause < 0) break;
 
         applyAssignment(var, Solver::cdb.at(clause, var));
+
+        if constexpr (Solver::settings.modelTrace) {
+            Solver::stats.modelTrace += (std::string) model + " UP\n";
+        }
+
         if (hasConflict()) return false;
     }
     

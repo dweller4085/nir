@@ -4,13 +4,10 @@
 #include "stt.hh"
 
 Solver::Result::Stats Solver::stats {};
-Solver::Settings Solver::theSettings {};
 ClauseDB Solver::theClauseDB {};
-Solver::Settings const& Solver::settings {theSettings};
 ClauseDB const& Solver::cdb {theClauseDB};
 
-bool Solver::init(std::string const & cnf, Settings const & settings) {
-    theSettings = settings;
+bool Solver::init(std::string const & cnf) {
     stats = {};
 
     auto static constexpr isWS = [](char const * s) -> bool {
@@ -86,7 +83,6 @@ bool Solver::init(std::string const & cnf, Settings const & settings) {
 
 void Solver::reset() {
     theClauseDB = {};
-    theSettings = {};
     stats = {};
 }
 
@@ -98,22 +94,44 @@ Solver::Result Solver::solve() {
 
     auto start = std::chrono::steady_clock::now();
 
+    if constexpr (Solver::settings.modelTrace) {
+        Solver::stats.modelTrace += (std::string) stack.top().model + "\n";
+    }
+
+
     while (!stack.isEmpty()) {
         STTNode& current = stack.top();
 
         if (current.isMarked) {
             if (auto nextValue = current.nextBVValue(); nextValue != TerVec::Value::Undef) {
                 current.applyAssignment(current.branchVar, nextValue);
+
+                if constexpr (Solver::settings.modelTrace) {
+                    Solver::stats.modelTrace += (std::string) current.model + " BV\n";
+                }
+
                 stack.push(STTNode {current});
                 stack.top().isMarked = false;
                 
                 Solver::stats.nodesVisitedCnt += 1;
             } else {
                 stack.pop();
+
+                if constexpr (Solver::settings.modelTrace) {
+                    if (!stack.isEmpty()) {
+                        Solver::stats.modelTrace += (std::string) stack.top().model + " BT\n";
+                    }
+                }
             }
         }
         else if (current.hasConflict() || !current.unitPropagate()) {
             stack.pop();
+
+            if constexpr (Solver::settings.modelTrace) {
+                if (!stack.isEmpty()) {
+                    Solver::stats.modelTrace += (std::string) stack.top().model + " BT\n";
+                }
+            }
         }
         else if (current.isSAT()) {
             Solver::stats.timeMs = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start}.count();
@@ -132,7 +150,7 @@ Solver::Result Solver::solve() {
 
 Solver::Result::operator std::string() const {
     auto out = std::string {};
-    auto stat = std::string {"stats:\n"} + 
+    auto stat = std::string {"stats:\n"} +
         "    time: " + std::to_string(stats.timeMs) + "ms\n" +
         "    nodesVisitedCnt: " + std::to_string(stats.nodesVisitedCnt) + "\n" +
         "    conflictCnt: " + std::to_string(stats.conflictCnt) + "\n"
@@ -150,6 +168,11 @@ Solver::Result::operator std::string() const {
             out += std::string {"Aborted: "} + value.aborted;
         } break;
     }
+
+    if constexpr (Solver::settings.modelTrace) {
+        stat += "modelTrace:\n" + stats.modelTrace + "\n";
+    }
+
 
     return out + "\n" + stat;
 }

@@ -5,7 +5,8 @@
 
 struct Solver {
     struct Settings {
-        u64 timeout_ms;
+        f32 timeout_ms;
+        bool modelTrace;
     };
     struct Result {
         struct Stats {
@@ -31,17 +32,19 @@ struct Solver {
         operator std::string() const;
     };
 
-    static bool init(std::string const & cnf, Settings const & settings);
+    static bool init(std::string const & cnf);
     static void reset();
     static Result solve();
     static bool sanityCheck(TerVec const& model);
 
 private:
     static ClauseDB theClauseDB;
-    static Settings theSettings;
 
 public:
     static ClauseDB const& cdb;
-    static Settings const& settings;
     static Result::Stats stats;
+    static constexpr Settings settings {
+        .timeout_ms = -1.f,
+        .modelTrace = true
+    };
 };
