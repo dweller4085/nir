@@ -1,7 +1,9 @@
 #include <chrono>
+#include <iostream>
 #include "solver.hh"
 #include "stt.hh"
 
+Solver::Result::Stats Solver::stats {};
 Solver::Settings Solver::theSettings {};
 ClauseDB Solver::theClauseDB {};
 Solver::Settings const& Solver::settings {theSettings};
@@ -9,6 +11,7 @@ ClauseDB const& Solver::cdb {theClauseDB};
 
 bool Solver::init(std::string const & cnf, Settings const & settings) {
     theSettings = settings;
+    stats = {};
 
     auto static constexpr isWS = [](char const * s) -> bool {
         return {*s == ' ' || *s == '\n'};
@@ -84,6 +87,7 @@ bool Solver::init(std::string const & cnf, Settings const & settings) {
 void Solver::reset() {
     theClauseDB = {};
     theSettings = {};
+    stats = {};
 }
 
 Solver::Result Solver::solve() {
@@ -102,6 +106,8 @@ Solver::Result Solver::solve() {
                 current.applyAssignment(current.branchVar, nextValue);
                 stack.push(STTNode {current});
                 stack.top().isMarked = false;
+                
+                Solver::stats.nodesVisitedCnt += 1;
             } else {
                 stack.pop();
             }
@@ -110,8 +116,9 @@ Solver::Result Solver::solve() {
             stack.pop();
         }
         else if (current.isSAT()) {
-            auto time = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start};
-            return {Result::Stats {.time_ms {time.count()}}, Result::Sat, {.sat {current.model}}};
+            Solver::stats.timeMs = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start}.count();
+            Solver::stats.sanityCheck = Solver::sanityCheck(current.model);
+            return {Solver::stats, Result::Sat, {.sat {current.model}}};
         }
         else {
             current.chooseBranchVar();
@@ -119,25 +126,32 @@ Solver::Result Solver::solve() {
         }
     }
 
-    auto time = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start};
-    return {Result::Stats {.time_ms {time.count()}}, Result::Unsat, {.unsat {}}};
+    Solver::stats.timeMs = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start}.count();
+    return {Solver::stats, Result::Unsat, {.unsat {}}};
 }
 
 Solver::Result::operator std::string() const {
     auto out = std::string {};
+    auto stat = std::string {"stats:\n"} + 
+        "    time: " + std::to_string(stats.timeMs) + "ms\n" +
+        "    nodesVisitedCnt: " + std::to_string(stats.nodesVisitedCnt) + "\n" +
+        "    conflictCnt: " + std::to_string(stats.conflictCnt) + "\n"
+    ;
+
     switch (type) {
         case Solver::Result::Sat: {
-            out += (std::string) value.sat + "\nSAT" +  + "\nsanity check: " + std::to_string(Solver::sanityCheck(value.sat));
+            out += "SAT\n" + (std::string) value.sat;
+            stat += "    sanity check: " + std::to_string(stats.sanityCheck) + "\n";
         } break;
         case Solver::Result::Unsat: {
-            out += "UNSAT ";
+            out += "UNSAT";
         } break;
         case Solver::Result::Aborted: {
             out += std::string {"Aborted: "} + value.aborted;
         } break;
     }
 
-    return out + "\n" + "Stats:\n\ttime: " + std::to_string(stats.time_ms) + "ms.";
+    return out + "\n" + stat;
 }
 
 bool Solver::sanityCheck(TerVec const& model) {

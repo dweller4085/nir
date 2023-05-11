@@ -49,7 +49,10 @@ bool STTNode::hasConflict() const {
             }
         }
 
-        if (isEmpty) return true;
+        if (isEmpty) {
+            Solver::stats.conflictCnt += 1;
+            return true;
+        }
     }
 
     return false;

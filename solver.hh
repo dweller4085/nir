@@ -9,7 +9,11 @@ struct Solver {
     };
     struct Result {
         struct Stats {
-            float time_ms;
+            float timeMs {0.f};
+            u32 nodesVisitedCnt {1};
+            u32 conflictCnt {0};
+            bool sanityCheck {false};
+            std::string modelTrace {};
         } stats;
 
         enum Type {
@@ -21,7 +25,7 @@ struct Solver {
         struct Value {
             TerVec sat;
             s32 unsat;
-            char const * aborted;
+            std::string aborted;
         } value;
 
         operator std::string() const;
@@ -39,4 +43,5 @@ private:
 public:
     static ClauseDB const& cdb;
     static Settings const& settings;
+    static Result::Stats stats;
 };
