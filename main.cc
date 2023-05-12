@@ -68,7 +68,7 @@ std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 seed, u32 
 
 
 int main (int argc, char ** argv) {
-    u32 const nVars = 5;
+    u32 const nVars = 16;
     u32 const nClauses = 31;
     u32 const rang = 2;
     f32 const distr = .1f;
@@ -77,8 +77,6 @@ int main (int argc, char ** argv) {
         fixedRang,
         fixedDistr,
     } cnfType = fixedRang;
-
-
 
     for (u32 i = 0; i == 0; i += 1) {
         switch (cnfType) {

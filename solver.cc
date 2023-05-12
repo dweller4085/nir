@@ -98,18 +98,15 @@ Solver::Result Solver::solve() {
         Solver::stats.modelTrace.root(stack.top().model);
     }
 
-
     while (!stack.isEmpty()) {
         STTNode& current = stack.top();
 
         if (current.isMarked) {
-            if (auto nextValue = current.nextBVValue(); nextValue != TerVec::Value::Undef) {
-                current.applyAssignment(current.branchVar, nextValue);
-                stack.push(STTNode {current});
-                stack.top().isMarked = false;
+            if (current.setNextValue()) {
+                stack.push(STTNode::nextAfter(current));
 
                 if constexpr (Solver::settings.modelTrace) {
-                    Solver::stats.modelTrace.BV(stack.top().model, stack.depth());
+                    Solver::stats.modelTrace.BV(stack.top().model);
                 }
                 Solver::stats.nodesVisitedCnt += 1;
 
@@ -118,7 +115,7 @@ Solver::Result Solver::solve() {
 
                 if constexpr (Solver::settings.modelTrace) {
                     if (!stack.isEmpty()) {
-                        Solver::stats.modelTrace.BT(stack.top().model, stack.depth());
+                        Solver::stats.modelTrace.BT(stack.top().model);
                     }
                 }
             }
@@ -128,7 +125,7 @@ Solver::Result Solver::solve() {
 
             if constexpr (Solver::settings.modelTrace) {
                 if (!stack.isEmpty()) {
-                    Solver::stats.modelTrace.BT(stack.top().model, stack.depth());
+                    Solver::stats.modelTrace.BT(stack.top().model);
                 }
             }
         }
@@ -175,6 +172,7 @@ Solver::Result::operator std::string() const {
 
     return out + "\n" + stat;
 }
+
 
 bool Solver::sanityCheck(TerVec const& model) {
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {

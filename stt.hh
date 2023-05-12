@@ -11,14 +11,18 @@ struct CDBView {
 struct STTNode {
     CDBView view {};
     TerVec model {Solver::cdb.varCnt, TerVec::Value::Undef};
-    s32 branchVar {-1};
+    struct {
+        s32 index {-1};
+        TerVec::Value value {TerVec::Value::Undef};
+    } branchVar;
     bool isMarked {false};
     /*--------------------*/
     struct Unit { s32 clause; u32 var; };
+    static STTNode nextAfter(STTNode const& current);
     bool unitPropagate();
     bool isSAT() const;
-    TerVec::Value nextBVValue() const;
-    void chooseBranchVar() { branchVar = model.findUndef(); }
+    bool setNextValue();
+    void chooseBranchVar();
     bool hasConflict() const;
     void applyAssignment(u32 var, TerVec::Value value);
     Unit findUnit() const;

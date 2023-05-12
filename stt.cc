@@ -1,19 +1,30 @@
 #include "stt.hh"
 
-TerVec::Value STTNode::nextBVValue() const {
+
+STTNode STTNode::nextAfter(STTNode const& current) {
+    auto next = STTNode {current};
+    next.applyAssignment(current.branchVar.index, current.branchVar.value);
+    next.isMarked = false;
+
+    return next;
+}
+
+bool STTNode::setNextValue() {
     using TerVec::Value::Undef, TerVec::Value::False, TerVec::Value::True;
     
-    TerVec::Value nextValue {Undef};
+    auto nextValue = Undef;
     
-    if (branchVar >= 0) {
-        switch (model.at(branchVar)) {
+    if (branchVar.index >= 0) {
+        switch (branchVar.value) {
             case Undef: nextValue = False; break;
             case False: nextValue = True; break;
             case True: nextValue = Undef; break;
         }
     }
 
-    return nextValue;
+    branchVar.value = nextValue;
+
+    return nextValue != Undef;
 }
 
 bool STTNode::unitPropagate() {
@@ -34,15 +45,10 @@ bool STTNode::unitPropagate() {
 }
 
 bool STTNode::isSAT() const {
-    // probably when view.clauseVis is all zeroes
-    // because then it would probably mean that all clauses are T === SAT
     return view.clauseVis.isAllZeros();
 }
 
 bool STTNode::hasConflict() const {
-    // doesn't really need to know the last applied assignment, does it?
-    // has to go through each visible clause in view to see if there are any empty ones
-    // ... again a simple implementation: just searching for the empty clause
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
@@ -64,7 +70,6 @@ bool STTNode::hasConflict() const {
 }
 
 STTNode::Unit STTNode::findUnit() const {
-    // .. simplest bare minimum implementation
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
@@ -95,4 +100,9 @@ void STTNode::applyAssignment(u32 var, TerVec::Value value) {
             view.clauseVis.clear(i);
         }
     }
+}
+
+void STTNode::chooseBranchVar() {
+    branchVar.index = model.findUndef();
+    branchVar.value = TerVec::Value::Undef;
 }
