@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <format>
 #include "cdb.hh"
 
 struct Solver {
@@ -14,7 +15,21 @@ struct Solver {
             u32 nodesVisitedCnt {1};
             u32 conflictCnt {0};
             bool sanityCheck {false};
-            std::string modelTrace {};
+            struct {
+                std::string trace;
+                void root(TerVec const& model) {
+                    trace += std::format("{}    (0)\n", (std::string) model);
+                }
+                void BV(TerVec const& model, u32 depth) {
+                    trace += std::format("{} BV ({} -> {})\n", (std::string) model, depth - 1, depth);
+                }
+                void UP(TerVec const& model) {
+                    trace += std::format("{} UP\n", (std::string) model);
+                }
+                void BT(TerVec const& model, u32 depth) {
+                    trace += std::format("{} BT ({} -> {})\n", (std::string) model, depth + 1, depth);
+                }
+            } modelTrace {};
         } stats;
 
         enum Type {

@@ -31,4 +31,5 @@ struct STTStack {
     inline void pop() { vec.pop_back(); }
     inline bool isEmpty() const { return vec.empty(); }
     inline STTNode& top() { return vec.back(); }
+    inline usize depth() { return vec.size() - 1; }
 };

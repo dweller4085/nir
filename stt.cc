@@ -24,7 +24,7 @@ bool STTNode::unitPropagate() {
         applyAssignment(var, Solver::cdb.at(clause, var));
 
         if constexpr (Solver::settings.modelTrace) {
-            Solver::stats.modelTrace += (std::string) model + " UP\n";
+            Solver::stats.modelTrace.UP(model);
         }
 
         if (hasConflict()) return false;

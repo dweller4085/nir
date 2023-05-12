@@ -95,7 +95,7 @@ Solver::Result Solver::solve() {
     auto start = std::chrono::steady_clock::now();
 
     if constexpr (Solver::settings.modelTrace) {
-        Solver::stats.modelTrace += (std::string) stack.top().model + "\n";
+        Solver::stats.modelTrace.root(stack.top().model);
     }
 
 
@@ -105,21 +105,20 @@ Solver::Result Solver::solve() {
         if (current.isMarked) {
             if (auto nextValue = current.nextBVValue(); nextValue != TerVec::Value::Undef) {
                 current.applyAssignment(current.branchVar, nextValue);
-
-                if constexpr (Solver::settings.modelTrace) {
-                    Solver::stats.modelTrace += (std::string) current.model + " BV\n";
-                }
-
                 stack.push(STTNode {current});
                 stack.top().isMarked = false;
-                
+
+                if constexpr (Solver::settings.modelTrace) {
+                    Solver::stats.modelTrace.BV(stack.top().model, stack.depth());
+                }
                 Solver::stats.nodesVisitedCnt += 1;
+
             } else {
                 stack.pop();
 
                 if constexpr (Solver::settings.modelTrace) {
                     if (!stack.isEmpty()) {
-                        Solver::stats.modelTrace += (std::string) stack.top().model + " BT\n";
+                        Solver::stats.modelTrace.BT(stack.top().model, stack.depth());
                     }
                 }
             }
@@ -129,7 +128,7 @@ Solver::Result Solver::solve() {
 
             if constexpr (Solver::settings.modelTrace) {
                 if (!stack.isEmpty()) {
-                    Solver::stats.modelTrace += (std::string) stack.top().model + " BT\n";
+                    Solver::stats.modelTrace.BT(stack.top().model, stack.depth());
                 }
             }
         }
@@ -170,7 +169,7 @@ Solver::Result::operator std::string() const {
     }
 
     if constexpr (Solver::settings.modelTrace) {
-        stat += "modelTrace:\n" + stats.modelTrace + "\n";
+        stat += "modelTrace:\n" + stats.modelTrace.trace + "\n";
     }
 
 
