@@ -3,7 +3,7 @@
 #include <random>
 #include "solver.hh"
 
-std::string generateRandomCnf(u32 varCnt, u32 clauseCnt, u32 seed, f32 distr) {
+std::string generateRandomCnf(u32 varCnt, u32 clauseCnt, f32 distr, u32 seed) {
     auto cnf = std::string {} + "n " + std::to_string(varCnt) + "\nm " + std::to_string(clauseCnt) + "\n";
     auto rng = std::mt19937 {seed};
 
@@ -33,7 +33,7 @@ std::string generateRandomCnf(u32 varCnt, u32 clauseCnt, u32 seed, f32 distr) {
     return cnf;
 }
 
-std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 seed, u32 rang) {
+std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 rang, u32 seed) {
     auto cnf = std::string {} + "n " + std::to_string(varCnt) + "\nm " + std::to_string(clauseCnt) + "\n";
     auto rng = std::mt19937 {seed};
     std::vector<u32> ia {};
@@ -78,15 +78,15 @@ int main (int argc, char ** argv) {
         fixedDistr,
     } cnfType = fixedRang;
 
-    for (u32 i = 0; i == 0; i += 1) {
+    for (u32 i = 0; i < 10; i += 1) {
         switch (cnfType) {
             case fixedRang: {
-                cnf = generateRandomCnfFixedRang(nVars, nClauses, i, rang);
+                cnf = generateRandomCnfFixedRang(nVars, nClauses, rang, i);
                 std::cout << "fixedRang (" << nVars << ", " << nClauses << ", " << i << ", " << rang << "):\n" << cnf << "\n";
             } break;
 
             case fixedDistr: {
-                cnf = generateRandomCnf(nVars, nClauses, i, distr);
+                cnf = generateRandomCnf(nVars, nClauses, distr, i);
                 std::cout << "fixedDistr (" << nVars << ", " << nClauses << ", " << i << ", " << distr << "):\n" << cnf << "\n";
             } break;
         }

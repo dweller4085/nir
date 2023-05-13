@@ -146,16 +146,20 @@ Solver::Result Solver::solve() {
 
 Solver::Result::operator std::string() const {
     auto out = std::string {};
-    auto stat = std::string {"stats:\n"} +
-        "    time: " + std::to_string(stats.timeMs) + "ms\n" +
-        "    nodesVisitedCnt: " + std::to_string(stats.nodesVisitedCnt) + "\n" +
-        "    conflictCnt: " + std::to_string(stats.conflictCnt) + "\n"
-    ;
+    auto statsMsg = std::format(
+        "stats:\n"
+        "    time: {:.4f}ms\n"
+        "    nodes visited: {}\n"
+        "    conflicts: {}\n",
+        stats.timeMs,
+        stats.nodesVisitedCnt,
+        stats.conflictCnt
+    );
 
     switch (type) {
         case Solver::Result::Sat: {
             out += "SAT\n" + (std::string) value.sat;
-            stat += "    sanity check: " + std::to_string(stats.sanityCheck) + "\n";
+            statsMsg += std::format("    sanity check: {}\n", stats.sanityCheck);
         } break;
         case Solver::Result::Unsat: {
             out += "UNSAT";
@@ -166,11 +170,11 @@ Solver::Result::operator std::string() const {
     }
 
     if constexpr (Solver::settings.modelTrace) {
-        stat += "modelTrace:\n" + stats.modelTrace.trace + "\n";
+        statsMsg += std::format("model trace:\n{}", stats.modelTrace.trace);
     }
 
 
-    return out + "\n" + stat;
+    return out + "\n" + statsMsg;
 }
 
 
