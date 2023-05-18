@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <format>
+#include <iostream>
 #include "cdb.hh"
 
 struct Solver {
@@ -20,17 +21,21 @@ struct Solver {
                 s32 level {0};
                 /*------------------*/
                 void root(TerVec const& model) {
-                    trace += std::format("{}    (0)\n", (std::string) model);
+                    //trace += std::format("{}    (0)\n", (std::string) model);
+                    std::cerr << std::format("{}    (0)\n", (std::string) model);
                 }
                 void BV(TerVec const& model) {
-                    trace += std::format("{} BV ({} -> {})\n", (std::string) model, level, level + 1);
+                    //trace += std::format("{} BV ({} -> {})\n", (std::string) model, level, level + 1);
+                    std::cerr << std::format("{} BV ({} -> {})\n", (std::string) model, level, level + 1);
                     level += 1;
                 }
                 void UP(TerVec const& model) {
-                    trace += std::format("{} UP\n", (std::string) model);
+                    //trace += std::format("{} UP\n", (std::string) model);
+                    std::cerr << std::format("{} UP\n", (std::string) model);
                 }
                 void BT(TerVec const& model) {
-                    trace += std::format("{} BT ({} -> {})\n", (std::string) model, level, level - 1);
+                    //trace += std::format("{} BT ({} -> {})\n", (std::string) model, level, level - 1);
+                    std::cerr << std::format("{} BT ({} -> {})\n", (std::string) model, level, level - 1);
                     level -= 1;
                 }
             } modelTrace {};

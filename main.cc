@@ -3,36 +3,6 @@
 #include <random>
 #include "solver.hh"
 
-std::string generateRandomCnf(u32 varCnt, u32 clauseCnt, f32 distr, u32 seed) {
-    auto cnf = std::string {} + "n " + std::to_string(varCnt) + "\nm " + std::to_string(clauseCnt) + "\n";
-    auto rng = std::mt19937 {seed};
-
-    // f32 disrt: ratio of '-' in each clause
-    static constexpr char val[3] { '0', '1', '-' };
-    
-    for (u32 i = 0; i < clauseCnt; i += 1) {
-        auto clause = std::string {};
-        u32 s {0};
-        for (u32 j = 0; j < varCnt; j += 1) {
-            char c {'-'};
-            if (rng() < (u32) UINT32_MAX * distr) {
-                c = val[rng () % u32 { 2 }];
-                s += 1;
-            }
-            clause += c;
-        }
-
-        if (s == 0) {
-            i -= 1;
-            continue;
-        } else {
-            cnf += clause + '\n';
-        }
-    }
-
-    return cnf;
-}
-
 std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 rang, u32 seed) {
     auto cnf = std::string {} + "n " + std::to_string(varCnt) + "\nm " + std::to_string(clauseCnt) + "\n";
     auto rng = std::mt19937 {seed};
@@ -67,31 +37,29 @@ std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 rang, u32 
 }
 
 
-int main (int argc, char ** argv) {
-    u32 const nVars = 16;
-    u32 const nClauses = 31;
-    u32 const rang = 2;
-    f32 const distr = .1f;
-    auto cnf = std::string {};
-    enum CnfType {
-        fixedRang,
-        fixedDistr,
-    } cnfType = fixedRang;
 
-    for (u32 i = 0; i < 10; i += 1) {
-        switch (cnfType) {
-            case fixedRang: {
-                cnf = generateRandomCnfFixedRang(nVars, nClauses, rang, i);
-                std::cout << "fixedRang (" << nVars << ", " << nClauses << ", " << i << ", " << rang << "):\n" << cnf << "\n";
-            } break;
+namespace tests {
+    void runCnfTests() {
+        u32 const nVars = 33;
+        u32 const nClauses = 65;
+        u32 const rang = 4;
 
-            case fixedDistr: {
-                cnf = generateRandomCnf(nVars, nClauses, distr, i);
-                std::cout << "fixedDistr (" << nVars << ", " << nClauses << ", " << i << ", " << distr << "):\n" << cnf << "\n";
-            } break;
+        for (u32 i = 0; i == 0; i += 1) {
+            auto cnf = generateRandomCnfFixedRang(nVars, nClauses, rang, i);
+            std::cout << std::format("fixedRang ({}, {}, {}, {}):\n{}", nVars, nClauses, i, rang, cnf);
+            Solver::init(cnf);
+            std::cout << "result:\n" + (std::string) Solver::solve() << "\n\n\n";
         }
-
-        Solver::init(cnf);
-        std::cout << "result:\n" + (std::string) Solver::solve() << "\n\n\n";
     }
+
+    void testGuts() {
+
+    }
+
+
+}
+
+
+int main (int argc, char ** argv) {
+    tests::runCnfTests();
 }

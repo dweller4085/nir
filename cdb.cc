@@ -3,7 +3,7 @@
 ClauseDB::ClauseDB(u32 varCnt, u32 clauseCnt) noexcept:
     clauseCnt {clauseCnt},
     varCnt {varCnt},
-    wordsPerVar {clauseCnt / 32 + 1}
+    wordsPerVar {(clauseCnt - 1) / 32 + 1}
 {
     // in the end there doesn't seem to be a substantial benefit to it being col-major
     // there are operations on both columns and rows, mostly on rows actually it looks like

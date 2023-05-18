@@ -2,16 +2,16 @@
 
 BinVec::BinVec(u32 len):
     BinVecSlice {
-        (u64 *) calloc ((len / 64 + 1), sizeof(u64)),
-        len / 64 + 1,
+        (u64 *) calloc (((len - 1) / 64 + 1), sizeof(u64)),
+        (len - 1) / 64 + 1,
         len
     }
 {}
 
 BinVec::BinVec(u32 len, bool value):
     BinVecSlice {
-        (u64 *) malloc ((len / 64 + 1) * sizeof(u64)),
-        len / 64 + 1,
+        (u64 *) malloc (((len - 1) / 64 + 1) * sizeof(u64)),
+        (len - 1) / 64 + 1,
         len
     } {
     int static constexpr fill[2] {
@@ -20,21 +20,22 @@ BinVec::BinVec(u32 len, bool value):
     };
 
     memset(words, fill[(int)value], wordCnt * sizeof(u64));
+    // this here is questionable
     words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (64 - len % 64);
 }
 
 TerVec::TerVec(u32 len):
     TerVecSlice {
-        (u64 *) calloc ((len / 32 + 1), sizeof(u64)),
-        len / 32 + 1,
+        (u64 *) calloc (((len - 1) / 32 + 1), sizeof(u64)),
+        (len - 1) / 32 + 1,
         len
     }
 {}
 
 TerVec::TerVec(u32 len, Value value):
     TerVecSlice {
-        (u64 *) malloc ((len / 32 + 1) * sizeof(u64)),
-        len / 32 + 1,
+        (u64 *) malloc (((len - 1) / 32 + 1) * sizeof(u64)),
+        (len - 1) / 32 + 1,
         len
     } {
     u64 static constexpr fill[3] {
@@ -44,6 +45,7 @@ TerVec::TerVec(u32 len, Value value):
     };
 
     memset(words, fill[(u64)value], wordCnt * sizeof(u64));
+    // here too
     words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
 }
 
