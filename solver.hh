@@ -69,6 +69,6 @@ public:
     static Result::Stats stats;
     static constexpr Settings settings {
         .timeout_ms = -1.f,
-        .modelTrace = true
+        .modelTrace = false
     };
 };

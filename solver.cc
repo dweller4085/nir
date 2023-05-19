@@ -148,7 +148,7 @@ Solver::Result::operator std::string() const {
     auto out = std::string {};
     auto statsMsg = std::format(
         "stats:\n"
-        "    time: {:.4f}ms\n"
+        "    time: {:.3f}ms\n"
         "    nodes visited: {}\n"
         "    conflicts: {}\n",
         stats.timeMs,

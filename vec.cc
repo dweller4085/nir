@@ -20,9 +20,7 @@ BinVec::BinVec(u32 len, bool value):
     };
 
     memset(words, fill[(int)value], wordCnt * sizeof(u64));
-    if (len % 64) {
-        words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (64 - len % 64);
-    }
+    words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (64 - len % 64);
 }
 
 TerVec::TerVec(u32 len):
@@ -46,10 +44,7 @@ TerVec::TerVec(u32 len, Value value):
     };
 
     memset(words, fill[(u64)value], wordCnt * sizeof(u64));
-    
-    if (len % 32) {
-        words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
-    }
+    words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
 }
 
 BinVec::~BinVec() {
