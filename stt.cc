@@ -10,6 +10,11 @@ STTNode STTNode::nextAfter(STTNode const& current) {
 }
 
 bool STTNode::setNextValue() {
+    /*
+        can probably support arbitrary variable value choice order, not just
+        undef - false - true.
+        use this->isMarked?
+    */
     auto nextValue = Undef;
     
     if (branchVar.index >= 0) {
@@ -103,4 +108,7 @@ void STTNode::applyAssignment(u32 var, TerVec::Value value) {
 void STTNode::chooseBranchVar() {
     branchVar.index = model.findUndef();
     branchVar.value = Undef;
+
+    /* find the set of vectors with smallest rang in the current cdb + cdbview.*/
+
 }

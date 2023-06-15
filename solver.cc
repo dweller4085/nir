@@ -120,6 +120,7 @@ Solver::Result Solver::solve() {
                 }
             }
         }
+        
         else if (current.hasConflict() || !current.unitPropagate()) {
             stack.pop();
 
@@ -129,11 +130,13 @@ Solver::Result Solver::solve() {
                 }
             }
         }
+        
         else if (current.isSAT()) {
             Solver::stats.timeMs = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start}.count();
             Solver::stats.sanityCheck = Solver::sanityCheck(current.model);
             return {Solver::stats, Result::Sat, {.sat {current.model}}};
         }
+        
         else {
             current.chooseBranchVar();
             current.isMarked = true;
@@ -176,7 +179,6 @@ Solver::Result::operator std::string() const {
 
     return out + "\n" + statsMsg;
 }
-
 
 bool Solver::sanityCheck(TerVec const& model) {
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {

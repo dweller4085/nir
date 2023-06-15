@@ -66,5 +66,13 @@ int main (int argc, char ** argv) {
         out << (std::string) Solver::solve();
         out.close();
     }*/
-    runCnfTests();
+    //runCnfTests();
+
+    TerVec tv {65, Undef};
+    tv.set(0, True);
+    tv.set(64, False);
+    tv.set(32, True);
+
+    std::cout << tv.rang();
+    
 }

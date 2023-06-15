@@ -3,21 +3,32 @@
 #include <string>
 #include "common.hh"
 
+/*  NOTE:
+    The leftover bits in BinVec and TerVec are guaranteed to be all zeroes upon
+    these objects instantiation.
+
+    As long as pass only correct indexes to mutating methods, those bits should remain zero.
+
+    There are functions that rely on this!
+*/
+
+
+
 struct BinVecSlice {
     u64 * words;
     u32 wordCnt;
     u32 len;
     /*--------------*/
-    inline bool at(u32 i) const {
+    bool at(u32 i) const {
         return _bittest64((__int64 *) words + i / 64, i % 64);
     }
-    inline bool set(u32 i) {
+    bool set(u32 i) {
         return _bittestandset64((__int64 *) words + i / 64, i % 64);
     }
-    inline bool clear(u32 i) {
+    bool clear(u32 i) {
         return _bittestandreset64((__int64 *) words + i / 64, i % 64);
     }
-    inline bool isAllZeros() const {
+    bool isAllZeros() const {
         u64 s = 0;
         for (u32 i = 0; i < wordCnt; i += 1) {
             s |= words[i];
@@ -32,24 +43,29 @@ struct TerVecSlice {
     u32 wordCnt;
     u32 len;
     /*-------------*/
-    enum class Value : u32 { False = 0b00, True = 0b01, Undef = 0b10 };
-    inline Value at(u32 i) const noexcept {
+    enum class Value: u32 { False = 0b00, True = 0b01, Undef = 0b10 };
+    Value at(u32 i) const noexcept {
         return TerVecSlice::Value {(words[i / 32] >> ((i % 32) * 2)) & u64 { 3 }};
     }
-    inline void set(u32 i, Value v) noexcept {
+    void set(u32 i, Value v) noexcept {
         u64 const j = (i % 32) * 2;
         words[i / 32] = words[i / 32] & ~(u64 {3} << j) | (u64)v << j;
     }
-    inline s32 findUndef() const noexcept {
-        u64 constexpr mask {0xAAAAAAAAAAAAAAAA};
+    s32 findUndef() const noexcept {
         for (s32 i = 0; i < (s32)wordCnt; i += 1) {
             unsigned long index;
-            if (_BitScanForward64(&index, words[i] & mask)) {
+            if (_BitScanForward64(&index, words[i] & 0xAAAAAAAAAAAAAAAA)) {
                 return {i * 32 + (s32)((index - 1) / 2)};
             }
         }
 
         return {-1};
+    }
+    u32 rang() const {
+        u32 undefs = 0;
+        for (u32 i = 0; i < wordCnt; i += 1) {
+            undefs += __popcnt64(words[i] & 0xAAAAAAAAAAAAAAAA);
+        } return len - undefs;
     }
 };
 

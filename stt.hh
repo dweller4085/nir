@@ -10,10 +10,10 @@ struct CDBView {
 
 struct STTNode {
     CDBView view {};
-    TerVec model {Solver::cdb.varCnt, TerVec::Value::Undef};
+    TerVec model {Solver::cdb.varCnt, Undef};
     struct {
         s32 index {-1};
-        TerVec::Value value {TerVec::Value::Undef};
+        TerVec::Value value {Undef};
     } branchVar;
     bool isMarked {false};
     /*--------------------*/
@@ -31,9 +31,9 @@ struct STTNode {
 struct STTStack {
     std::vector<STTNode> vec;
     /*-----------------------*/
-    inline void push(STTNode&& node) { vec.push_back(std::move(node)); }
-    inline void pop() { vec.pop_back(); }
-    inline bool isEmpty() const { return vec.empty(); }
-    inline STTNode& top() { return vec.back(); }
-    inline usize depth() { return vec.size() - 1; }
+    void push(STTNode&& node) { vec.push_back(std::move(node)); }
+    void pop() { vec.pop_back(); }
+    bool isEmpty() const { return vec.empty(); }
+    STTNode& top() { return vec.back(); }
+    usize depth() { return vec.size() - 1; }
 };
