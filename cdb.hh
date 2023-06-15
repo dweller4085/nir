@@ -1,6 +1,10 @@
 #pragma once
 #include "vec.hh"
 
+/* TODO
+    add a transpose twin matrix for row operations.
+*/
+
 struct ClauseDB {
     u64 * clauses;
     u32 clauseCnt;

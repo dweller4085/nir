@@ -67,6 +67,10 @@ struct TerVecSlice {
             undefs += __popcnt64(words[i] & 0xAAAAAAAAAAAAAAAA);
         } return len - undefs;
     }
+    Value isMonotone() const {
+        /* impl... */
+        return {};
+    }
 };
 
 struct BinVec : BinVecSlice {

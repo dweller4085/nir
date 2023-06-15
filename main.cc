@@ -40,13 +40,13 @@ std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 rang, u32 
 }
 
 void runCnfTests() {
-    u32 const nVars = 100;
-    u32 const nClauses = 750;
+    u32 const nVars = 240;
+    u32 const nClauses = 480;
     u32 const rang = 4;
 
     for (u32 i = 0; i == 0; i += 1) {
         auto cnf = generateRandomCnfFixedRang(nVars, nClauses, rang, i);
-        std::cout << std::format("fixedRang ({}, {}, {}, {}):\n{}", nVars, nClauses, i, rang, cnf);
+        std::cout << std::format("fixedRang ({}, {}, {}, {}):\n{}", nVars, nClauses, rang, i, cnf);
         Solver::init(cnf);
         std::cout << "result:\n" + (std::string) Solver::solve() << "\n\n\n";
     }
@@ -66,13 +66,6 @@ int main (int argc, char ** argv) {
         out << (std::string) Solver::solve();
         out.close();
     }*/
-    //runCnfTests();
-
-    TerVec tv {65, Undef};
-    tv.set(0, True);
-    tv.set(64, False);
-    tv.set(32, True);
-
-    std::cout << tv.rang();
+    runCnfTests();
     
 }

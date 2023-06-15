@@ -106,9 +106,62 @@ void STTNode::applyAssignment(u32 var, TerVec::Value value) {
 }
 
 void STTNode::chooseBranchVar() {
+    /*
     branchVar.index = model.findUndef();
     branchVar.value = Undef;
+    */
 
-    /* find the set of vectors with smallest rang in the current cdb + cdbview.*/
+    /* 1. find the set of vectors with min rang in the current cdb + cdbview.*/
+    /* 2. ... */
 
+    /* 24:4 2330 :( ugly hack for now... */
+    /* just finding some vector with min rang and picking the col in it with max rang */
+
+    if constexpr (false) {
+        struct {
+            u32 rang;
+            u32 index = 0;
+        } minClause {UINT32_MAX}, maxCol {0};
+
+        /* find a clause with min rang in cdb + cdbview */
+        for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+            if (!view.clauseVis.at(i)) continue;
+
+            u32 rang = 0;
+            for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
+                if (view.varVis.at(j) && Solver::cdb.at(i, j) != Undef) rang += 1;
+            }
+
+            if (rang < minClause.rang) {
+                minClause.rang = rang;
+                minClause.index = i;
+            }
+        }
+
+        /* go over def values / columns of this clause, find the column with max rang */
+        for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
+            if (!view.varVis.at(j) || Solver::cdb.at(minClause.index, j) == Undef) continue;
+
+            u32 rang = 0;
+            for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+                if (view.clauseVis.at(i) && Solver::cdb.at(i, j) != Undef) rang += 1;
+            }
+
+            if (rang > maxCol.rang) {
+                maxCol.rang = rang;
+                maxCol.index = j;
+            }
+        }
+
+        /* we're done. this is the branch var index. */
+        branchVar.index = maxCol.index;
+
+        /* for now this is how it is, because of how setNextValue works. */
+        branchVar.value = Undef;
+    }
+
+    else {
+        branchVar.index = model.findUndef();
+        branchVar.value = Undef;
+    }
 }
