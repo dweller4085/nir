@@ -10,8 +10,6 @@ STTNode STTNode::nextAfter(STTNode const& current) {
 }
 
 bool STTNode::setNextValue() {
-    using TerVec::Value::Undef, TerVec::Value::False, TerVec::Value::True;
-    
     auto nextValue = Undef;
     
     if (branchVar.index >= 0) {
@@ -54,7 +52,7 @@ bool STTNode::hasConflict() const {
 
         bool isEmpty = true;
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-            if (view.varVis.at(j) && Solver::cdb.at(i, j) != TerVec::Value::Undef) {
+            if (view.varVis.at(j) && Solver::cdb.at(i, j) != Undef) {
                 isEmpty = false;
                 break;
             }
@@ -76,7 +74,7 @@ STTNode::Unit STTNode::findUnit() const {
         u32 k = 0;
         s32 s = 0;
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-            if (view.varVis.at(j) && Solver::cdb.at(i, j) != TerVec::Value::Undef) {
+            if (view.varVis.at(j) && Solver::cdb.at(i, j) != Undef) {
                 if ((s += 1) > 1) break;
                 k = j;
             }
@@ -104,5 +102,5 @@ void STTNode::applyAssignment(u32 var, TerVec::Value value) {
 
 void STTNode::chooseBranchVar() {
     branchVar.index = model.findUndef();
-    branchVar.value = TerVec::Value::Undef;
+    branchVar.value = Undef;
 }

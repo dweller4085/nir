@@ -23,13 +23,6 @@ struct BinVecSlice {
             s |= words[i];
         }
 
-        // mask off garbage at leftover bits
-        // (if there ever is garbage with current usage)
-        // we only ever set individual bits, never shift or xor or anything
-        // so those leftover bits are stuck as 0 from the calloc to the end
-        // AND we're explicitely zeroing out them at the creation
-        //s |= words[wordCnt - 1] & (0xFFFFFFFFFFFFFFFF >> (64 - len % 64));
-
         return s == 0;
     }
 };
@@ -48,9 +41,6 @@ struct TerVecSlice {
         words[i / 32] = words[i / 32] & ~(u64 {3} << j) | (u64)v << j;
     }
     inline s32 findUndef() const noexcept {
-        // should take into consideration possible leftover garbage in the last word
-        // although if we don't touch those bits, they will stay at zero, and so won't
-        // have an effect here, since it searches for the first set bit with odd index
         u64 constexpr mask {0xAAAAAAAAAAAAAAAA};
         for (s32 i = 0; i < (s32)wordCnt; i += 1) {
             unsigned long index;
@@ -82,3 +72,5 @@ struct TerVec : TerVecSlice {
     ~TerVec();
     operator std::string () const;
 };
+
+using TerVec::Value::Undef, TerVec::Value::True, TerVec::Value::False;
