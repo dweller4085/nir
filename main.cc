@@ -39,12 +39,12 @@ std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 rang, u32 
     return cnf;
 }
 
-void runCnfTests() {
+void runCnfTests(u32 a, u32 b) {
     u32 const nVars = 240;
     u32 const nClauses = 480;
     u32 const rang = 4;
 
-    for (u32 i = 0; i == 0; i += 1) {
+    for (u32 i = a; i <= b; i += 1) {
         auto cnf = generateRandomCnfFixedRang(nVars, nClauses, rang, i);
         std::cout << std::format("fixedRang ({}, {}, {}, {}):\n{}", nVars, nClauses, rang, i, cnf);
         Solver::init(cnf);
@@ -66,6 +66,6 @@ int main (int argc, char ** argv) {
         out << (std::string) Solver::solve();
         out.close();
     }*/
-    runCnfTests();
+    runCnfTests(0, 0);
     
 }

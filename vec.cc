@@ -31,7 +31,7 @@ TerVec::TerVec(u32 len):
     }
 {}
 
-TerVec::TerVec(u32 len, Value value):
+TerVec::TerVec(u32 len, Ternary value):
     TerVecSlice {
         (u64 *) malloc (((len - 1) / 32 + 1) * sizeof(u64)),
         (len - 1) / 32 + 1,
@@ -55,7 +55,7 @@ TerVec::~TerVec() {
     if (words) free(words);
 }
 
-BinVec::BinVec(BinVec const & other) noexcept:
+BinVec::BinVec(BinVec const& other) noexcept:
     BinVecSlice {
         (u64 *) malloc(other.wordCnt * sizeof(u64)),
         other.wordCnt,
@@ -64,7 +64,7 @@ BinVec::BinVec(BinVec const & other) noexcept:
     memcpy(words, other.words, wordCnt * sizeof(u64));
 }
 
-TerVec::TerVec(TerVec const & other) noexcept:
+TerVec::TerVec(TerVec const& other) noexcept:
     TerVecSlice {
         (u64 *) malloc(other.wordCnt * sizeof(u64)),
         other.wordCnt,
@@ -91,7 +91,7 @@ TerVec::TerVec(TerVec&& other) noexcept:
     other.words = nullptr;
 }
 
-BinVec::operator std::string () const {
+BinVecSlice::operator std::string () const {
     auto out = std::string {};
     for (u32 i = 0; i < len; i += 1) {
         switch (at(i)) {
@@ -101,13 +101,13 @@ BinVec::operator std::string () const {
     } return out;
 }
 
-TerVec::operator std::string () const {
+TerVecSlice::operator std::string () const {
     auto out = std::string {};
     for (u32 i = 0; i < len; i += 1) {
         switch (at(i)) {
-            case Value::False: out += '0'; break;
-            case Value::True: out += '1'; break;
-            case Value::Undef: out += '-'; break;
+            case False: out += '0'; break;
+            case True: out += '1'; break;
+            case Undef: out += '-'; break;
         }
     } return out;
 }

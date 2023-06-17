@@ -13,7 +13,7 @@ struct STTNode {
     TerVec model {Solver::cdb.varCnt, Undef};
     struct {
         s32 index {-1};
-        TerVec::Value value {Undef};
+        Ternary value {Undef};
     } branchVar;
     bool isMarked {false};
     /*--------------------*/
@@ -24,7 +24,7 @@ struct STTNode {
     bool setNextValue();
     void chooseBranchVar();
     bool hasConflict() const;
-    void applyAssignment(u32 var, TerVec::Value value);
+    void applyAssignment(u32 var, Ternary value);
     Unit findUnit() const;
 };
 

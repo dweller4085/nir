@@ -4,15 +4,10 @@
 #include "common.hh"
 
 /*  NOTE:
-    The leftover bits in BinVec and TerVec are guaranteed to be all zeroes upon
-    these objects instantiation.
-
-    As long as pass only correct indexes to mutating methods, those bits should remain zero.
-
-    There are functions that rely on this!
+    The leftover bits in BinVec and TerVec must be all zeroes!
 */
 
-
+enum Ternary { False = 0b00, True = 0b01, Undef = 0b10 };
 
 struct BinVecSlice {
     u64 * words;
@@ -36,6 +31,7 @@ struct BinVecSlice {
 
         return s == 0;
     }
+    operator std::string () const;
 };
 
 struct TerVecSlice {
@@ -43,11 +39,10 @@ struct TerVecSlice {
     u32 wordCnt;
     u32 len;
     /*-------------*/
-    enum class Value: u32 { False = 0b00, True = 0b01, Undef = 0b10 };
-    Value at(u32 i) const noexcept {
-        return TerVecSlice::Value {(words[i / 32] >> ((i % 32) * 2)) & u64 { 3 }};
+    Ternary at(u32 i) const noexcept {
+        return (Ternary) ((words[i / 32] >> ((i % 32) * 2)) & u64 { 3 });
     }
-    void set(u32 i, Value v) noexcept {
+    void set(u32 i, Ternary v) noexcept {
         u64 const j = (i % 32) * 2;
         words[i / 32] = words[i / 32] & ~(u64 {3} << j) | (u64)v << j;
     }
@@ -67,30 +62,27 @@ struct TerVecSlice {
             undefs += __popcnt64(words[i] & 0xAAAAAAAAAAAAAAAA);
         } return len - undefs;
     }
-    Value isMonotone() const {
+    Ternary isMonotone() const {
         /* impl... */
         return {};
     }
+    operator std::string () const;
 };
 
-struct BinVec : BinVecSlice {
+struct BinVec: BinVecSlice {
     BinVec() = default;
     BinVec(u32 len);
     BinVec(u32 len, bool value);
     BinVec(BinVec const &) noexcept;
     BinVec(BinVec&&) noexcept;
     ~BinVec();
-    operator std::string () const;
 };
 
-struct TerVec : TerVecSlice {
+struct TerVec: TerVecSlice {
     TerVec() = default;
     TerVec(u32 len);
-    TerVec(u32 len, Value value);
+    TerVec(u32 len, Ternary value);
     TerVec(TerVec const &) noexcept;
     TerVec(TerVec&&) noexcept;
     ~TerVec();
-    operator std::string () const;
 };
-
-using TerVec::Value::Undef, TerVec::Value::True, TerVec::Value::False;

@@ -94,7 +94,7 @@ STTNode::Unit STTNode::findUnit() const {
     return Unit {-1, 0};
 }
 
-void STTNode::applyAssignment(u32 var, TerVec::Value value) {
+void STTNode::applyAssignment(u32 var, Ternary value) {
     model.set(var, value);
     view.varVis.clear(var);
 

@@ -25,12 +25,12 @@ bool Solver::init(std::string const & cnf) {
     auto static constexpr digit = [](char const *& d) -> int {
         return {*(d++) - 0x30};
     };
-    auto static constexpr ternary = [](char const *& d) -> TerVec::Value {
-        TerVec::Value val {};
+    auto static constexpr ternary = [](char const *& d) -> Ternary {
+        Ternary val;
         switch (*(d++)) {
-            case '0': val = TerVec::Value::False; break;
-            case '1': val = TerVec::Value::True; break;
-            case '-': val = TerVec::Value::Undef; break;
+            case '0': val = False; break;
+            case '1': val = True; break;
+            case '-': val = Undef; break;
             default: break;
         }
 
