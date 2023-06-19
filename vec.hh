@@ -3,17 +3,23 @@
 #include <string>
 #include "common.hh"
 
-/*  NOTE:
-    The leftover bits in BinVec and TerVec must be all zeroes!
-*/
-
 enum Ternary { False = 0b00, True = 0b01, Undef = 0b10 };
 
 struct BinVecSlice {
-    u64 * words;
-    u32 wordCnt;
-    u32 len;
-    /*--------------*/
+    static u32 wordCntFor(u32 len) { return (len - 1) / 64 + 1; }
+    static usize memoryFor(u32 len) { return wordCntFor(len) * sizeof(u64); }
+    BinVecSlice() = default;
+    BinVecSlice(u32 len, u64 * words): len {len}, words {words}, wordCnt {wordCntFor(len)} {}
+    BinVecSlice(u32 len, bool value, u64 * words): BinVecSlice {len, words} { init(value); }
+    void init(bool value) {
+        int static constexpr fill[2] {
+            0x00,
+            0xFF
+        };
+
+        memset(words, fill[(int) value], wordCnt * sizeof(u64));
+        words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (64 - len % 64);
+    }
     bool at(u32 i) const {
         return _bittest64((__int64 *) words + i / 64, i % 64);
     }
@@ -32,13 +38,28 @@ struct BinVecSlice {
         return s == 0;
     }
     operator std::string () const;
-};
 
-struct TerVecSlice {
     u64 * words;
     u32 wordCnt;
     u32 len;
-    /*-------------*/
+};
+
+struct TerVecSlice {
+    static u32 wordCntFor(u32 len) { return (len - 1) / 32 + 1; }
+    static usize memoryFor(u32 len) { return wordCntFor(len) * sizeof(u64); }
+    TerVecSlice() = default;
+    TerVecSlice(u32 len, u64 * words): len {len}, words {words}, wordCnt {wordCntFor(len)} {}
+    TerVecSlice(u32 len, Ternary value, u64 * words): TerVecSlice {len, words} { init(value); }
+    void init(Ternary value) {
+        u32 static constexpr fill[3] {
+            0x00,
+            0x55,
+            0xAA
+        };
+
+        memset(words, fill[(u64) value], wordCnt * sizeof(u64));
+        words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
+    }
     Ternary at(u32 i) const noexcept {
         return (Ternary) ((words[i / 32] >> ((i % 32) * 2)) & u64 { 3 });
     }
@@ -67,22 +88,25 @@ struct TerVecSlice {
         return {};
     }
     operator std::string () const;
+
+    u64 * words;
+    u32 wordCnt;
+    u32 len;
 };
 
 struct BinVec: BinVecSlice {
     BinVec() = default;
-    BinVec(u32 len);
     BinVec(u32 len, bool value);
-    BinVec(BinVec const &) noexcept;
+    BinVec(BinVec const&) noexcept;
     BinVec(BinVec&&) noexcept;
     ~BinVec();
 };
 
 struct TerVec: TerVecSlice {
     TerVec() = default;
-    TerVec(u32 len);
     TerVec(u32 len, Ternary value);
-    TerVec(TerVec const &) noexcept;
+    TerVec(TerVecSlice const&) noexcept;
+    TerVec(TerVec const&) noexcept;
     TerVec(TerVec&&) noexcept;
     ~TerVec();
 };

@@ -1,51 +1,20 @@
 #include "vec.hh"
 
-BinVec::BinVec(u32 len):
-    BinVecSlice {
-        (u64 *) calloc (((len - 1) / 64 + 1), sizeof(u64)),
-        (len - 1) / 64 + 1,
-        len
-    }
-{}
-
 BinVec::BinVec(u32 len, bool value):
     BinVecSlice {
-        (u64 *) malloc (((len - 1) / 64 + 1) * sizeof(u64)),
-        (len - 1) / 64 + 1,
-        len
-    } {
-    int static constexpr fill[2] {
-        0x00,
-        0xFF
-    };
-
-    memset(words, fill[(int)value], wordCnt * sizeof(u64));
-    words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (64 - len % 64);
-}
-
-TerVec::TerVec(u32 len):
-    TerVecSlice {
-        (u64 *) calloc (((len - 1) / 32 + 1), sizeof(u64)),
-        (len - 1) / 32 + 1,
-        len
-    }
+        len,
+        value,
+        (u64 *) malloc (memoryFor(len)),
+    } 
 {}
 
 TerVec::TerVec(u32 len, Ternary value):
     TerVecSlice {
-        (u64 *) malloc (((len - 1) / 32 + 1) * sizeof(u64)),
-        (len - 1) / 32 + 1,
-        len
-    } {
-    u64 static constexpr fill[3] {
-        0x00,
-        0x55,
-        0xAA
-    };
-
-    memset(words, fill[(u64)value], wordCnt * sizeof(u64));
-    words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
-}
+        len,
+        value,
+        (u64 *) malloc (memoryFor(len)),
+    }
+{}
 
 BinVec::~BinVec() {
     if (words) free(words);
@@ -57,36 +26,40 @@ TerVec::~TerVec() {
 
 BinVec::BinVec(BinVec const& other) noexcept:
     BinVecSlice {
+        other.len,
         (u64 *) malloc(other.wordCnt * sizeof(u64)),
-        other.wordCnt,
-        other.len
     } {
     memcpy(words, other.words, wordCnt * sizeof(u64));
 }
 
 TerVec::TerVec(TerVec const& other) noexcept:
     TerVecSlice {
+        other.len,
         (u64 *) malloc(other.wordCnt * sizeof(u64)),
-        other.wordCnt,
-        other.len
     } {
+    memcpy(words, other.words, wordCnt * sizeof(u64));
+}
+
+TerVec::TerVec(TerVecSlice const& other) noexcept:
+    TerVecSlice {
+    other.len,
+    (u64 *) malloc(other.wordCnt * sizeof(u64)),
+} {
     memcpy(words, other.words, wordCnt * sizeof(u64));
 }
 
 BinVec::BinVec(BinVec&& other) noexcept:
     BinVecSlice {
+        other.len,
         other.words,
-        other.wordCnt,
-        other.len
     } {
     other.words = nullptr;
 }
 
 TerVec::TerVec(TerVec&& other) noexcept:
     TerVecSlice {
+        other.len,
         other.words,
-        other.wordCnt,
-        other.len
     } {
     other.words = nullptr;
 }

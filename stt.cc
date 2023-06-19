@@ -1,11 +1,37 @@
 #include "stt.hh"
+#include "memory.hh"
 
+FrameAllocator STTNode::allocator;
+
+STTNode::STTNode() {
+    allocator.push();
+    model = TerVecSlice {Solver::cdb.varCnt, Undef, (u64 *) allocator.alloc(TerVecSlice::memoryFor(Solver::cdb.varCnt))};
+    view = CDBView {
+        .varVis {Solver::cdb.varCnt, true, (u64 *) allocator.alloc(BinVecSlice::memoryFor(Solver::cdb.varCnt))},
+        .clauseVis {Solver::cdb.clauseCnt, true, (u64 *) allocator.alloc(BinVecSlice::memoryFor(Solver::cdb.clauseCnt))},
+    };
+}
+
+STTNode::STTNode(STTNode&& other) noexcept {
+    *this = std::as_const(other);
+    other.isMoved = true;
+}
+
+
+STTNode::STTNode(STTNode const& other) noexcept: STTNode {} {
+    memcpy(model.words, other.model.words, model.wordCnt * sizeof(u64));
+    memcpy(view.varVis.words, other.view.varVis.words, view.varVis.wordCnt * sizeof(u64));
+    memcpy(view.clauseVis.words, other.view.clauseVis.words, view.clauseVis.wordCnt * sizeof(u64));
+}
+
+STTNode::~STTNode() {
+    if (!isMoved) allocator.pop();
+}
 
 STTNode STTNode::nextAfter(STTNode const& current) {
     auto next = STTNode {current};
     next.applyAssignment(current.branchVar.index, current.branchVar.value);
     next.isMarked = false;
-
     return next;
 }
 
@@ -98,6 +124,7 @@ void STTNode::applyAssignment(u32 var, Ternary value) {
     model.set(var, value);
     view.varVis.clear(var);
 
+    // could take a column and do this 64bit words at a time instead of this for loop
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (view.clauseVis.at(i) && Solver::cdb.at(i, var) == value) {
             view.clauseVis.clear(i);
@@ -106,18 +133,10 @@ void STTNode::applyAssignment(u32 var, Ternary value) {
 }
 
 void STTNode::chooseBranchVar() {
-    /*
-    branchVar.index = model.findUndef();
-    branchVar.value = Undef;
-    */
-
-    /* 1. find the set of vectors with min rang in the current cdb + cdbview.*/
-    /* 2. ... */
-
     /* 24:4 2330 :( ugly hack for now... */
     /* just finding some vector with min rang and picking the col in it with max rang */
 
-    if constexpr (false) {
+    if constexpr (true) {
         struct {
             u32 rang;
             u32 index = 0;

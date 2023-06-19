@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClInclude Include="cdb.hh" />
     <ClInclude Include="common.hh" />
+    <ClInclude Include="memory.hh" />
     <ClInclude Include="stt.hh" />
     <ClInclude Include="vec.hh" />
     <ClInclude Include="solver.hh" />

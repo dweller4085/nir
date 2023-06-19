@@ -67,5 +67,4 @@ int main (int argc, char ** argv) {
         out.close();
     }*/
     runCnfTests(0, 0);
-    
 }

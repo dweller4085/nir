@@ -1,35 +1,35 @@
 #pragma once
 #include "vec.hh"
 
-/* TODO
-    add a transpose twin matrix for row operations.
-*/
-
 struct ClauseDB {
-    u64 * clauses;
-    u32 clauseCnt;
-    u32 varCnt;
-    u32 wordsPerVar;
-    /*------------*/
     ClauseDB() = default;
+    ClauseDB(std::string const& cnf, bool& ok);
     ClauseDB& operator = (ClauseDB&&) noexcept;
-    ClauseDB(u32 varCnt, u32 clauseCnt) noexcept;
     ~ClauseDB();
-    void set(u32 clause, u32 var, Ternary val) {
-        u64 const j = (clause % 32) * 2;
-        u64 * const word = clauses + wordsPerVar * var + clause / 32;
-        *word &= ~(u64 {0b11} << j);
-        *word |= (u64) val << j;
-    }
-    Ternary at(u32 clause, u32 var) const {
-        u64 const word = *(clauses + wordsPerVar * var + clause / 32);
-        return (Ternary) (word >> ((clause % 32) * 2) & u64 {0b11});
-    }
+    
     TerVecSlice column(u32 var) const {
         return {
-            clauses + wordsPerVar * var,
-            wordsPerVar,
-            clauseCnt
+            clauseCnt,
+            cols.matrix + cols.words * var,
         };
     }
+    
+    TerVecSlice clause(u32 clause) const {
+        return {
+            varCnt,
+            rows.matrix + rows.words * clause,
+        };
+    }
+
+    Ternary at(u32 clause, u32 var) const {
+        u64 const word = *(cols.matrix + cols.words * var + clause / 32);
+        return (Ternary) (word >> ((clause % 32) * 2) & u64 { 0b11 });
+    }
+
+    u32 clauseCnt;
+    u32 varCnt;
+    struct {
+        u64 * matrix;
+        u32 words;
+    } rows, cols;
 };

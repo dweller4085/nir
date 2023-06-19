@@ -2,23 +2,25 @@
 #include <vector>
 #include <string>
 #include "solver.hh"
+#include "memory.hh"
 
 struct CDBView {
-    BinVec varVis {Solver::cdb.varCnt, 1};
-    BinVec clauseVis {Solver::cdb.clauseCnt, 1};
+    BinVecSlice varVis;
+    BinVecSlice clauseVis;
 };
 
 struct STTNode {
-    CDBView view {};
-    TerVec model {Solver::cdb.varCnt, Undef};
-    struct {
-        s32 index {-1};
-        Ternary value {Undef};
-    } branchVar;
-    bool isMarked {false};
-    /*--------------------*/
     struct Unit { s32 clause; u32 var; };
+
+    static FrameAllocator allocator;
     static STTNode nextAfter(STTNode const& current);
+
+    STTNode();
+    STTNode(STTNode&&) noexcept;
+    STTNode(STTNode const&) noexcept;
+    STTNode& operator = (STTNode const&) = default;
+    ~STTNode();
+
     bool unitPropagate();
     bool isSAT() const;
     bool setNextValue();
@@ -26,14 +28,23 @@ struct STTNode {
     bool hasConflict() const;
     void applyAssignment(u32 var, Ternary value);
     Unit findUnit() const;
+
+    bool isMoved {false}; // god damn it
+    bool isMarked {false};
+    TerVecSlice model;
+    CDBView view;
+    struct {
+        s32 index {-1};
+        Ternary value {Undef};
+    } branchVar;
 };
 
 struct STTStack {
-    std::vector<STTNode> vec;
-    /*-----------------------*/
     void push(STTNode&& node) { vec.push_back(std::move(node)); }
     void pop() { vec.pop_back(); }
     bool isEmpty() const { return vec.empty(); }
     STTNode& top() { return vec.back(); }
-    usize depth() { return vec.size() - 1; }
+    usize depth() const { return vec.size() - 1; }
+
+    std::vector<STTNode> vec;
 };

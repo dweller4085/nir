@@ -20,20 +20,20 @@ struct Solver {
                 std::string trace;
                 s32 level {0};
                 /*------------------*/
-                void root(TerVec const& model) {
+                void root(TerVecSlice const& model) {
                     trace += std::format("{}    (0)\n", (std::string) model);
                     //std::cerr << std::format("{}    (0)\n", (std::string) model);
                 }
-                void BV(TerVec const& model) {
+                void BV(TerVecSlice const& model) {
                     trace += std::format("{} BV ({} -> {})\n", (std::string) model, level, level + 1);
                     //std::cerr << std::format("{} BV ({} -> {})\n", (std::string) model, level, level + 1);
                     level += 1;
                 }
-                void UP(TerVec const& model) {
+                void UP(TerVecSlice const& model) {
                     trace += std::format("{} UP\n", (std::string) model);
                     //std::cerr << std::format("{} UP\n", (std::string) model);
                 }
-                void BT(TerVec const& model) {
+                void BT(TerVecSlice const& model) {
                     trace += std::format("{} BT ({} -> {})\n", (std::string) model, level, level - 1);
                     //std::cerr << std::format("{} BT ({} -> {})\n", (std::string) model, level, level - 1);
                     level -= 1;
@@ -56,19 +56,15 @@ struct Solver {
         operator std::string() const;
     };
 
-    static bool init(std::string const & cnf);
+    static bool init(std::string const& cnf);
     static void reset();
     static Result solve();
-    static bool sanityCheck(TerVec const& model);
-    static std::string estimateModelRedundancy(TerVec const& model);
+    static bool sanityCheck(TerVecSlice const& model);
 
-    static ClauseDB const& cdb;
+    static ClauseDB cdb;
     static Result::Stats stats;
     static constexpr Settings settings {
         .timeout_ms = -1.f,
-        .modelTrace = true
+        .modelTrace = false
     };
-
-private:
-    static ClauseDB theClauseDB;
 };
