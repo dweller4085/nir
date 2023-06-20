@@ -11,21 +11,12 @@ bool Solver::init(std::string const& cnf) {
     stats = {};
     bool ok = false;
     cdb = ClauseDB {cnf, ok};
-    if (!ok) return false;
-
-    usize frameSize {
-        TerVecSlice::memoryFor(Solver::cdb.varCnt) +
-        BinVecSlice::memoryFor(Solver::cdb.varCnt) +
-        BinVecSlice::memoryFor(Solver::cdb.clauseCnt)
-    };
-
-    STTNode::allocator = FrameAllocator {frameSize, cdb.varCnt};
+    return ok;
 }
 
 void Solver::reset() {
     cdb = {};
     stats = {};
-    STTNode::allocator = {};
 }
 
 Solver::Result Solver::solve() {

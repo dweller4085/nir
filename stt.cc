@@ -1,32 +1,4 @@
 #include "stt.hh"
-#include "memory.hh"
-
-FrameAllocator STTNode::allocator;
-
-STTNode::STTNode() {
-    allocator.push();
-    model = TerVecSlice {Solver::cdb.varCnt, Undef, (u64 *) allocator.alloc(TerVecSlice::memoryFor(Solver::cdb.varCnt))};
-    view = CDBView {
-        .varVis {Solver::cdb.varCnt, true, (u64 *) allocator.alloc(BinVecSlice::memoryFor(Solver::cdb.varCnt))},
-        .clauseVis {Solver::cdb.clauseCnt, true, (u64 *) allocator.alloc(BinVecSlice::memoryFor(Solver::cdb.clauseCnt))},
-    };
-}
-
-STTNode::STTNode(STTNode&& other) noexcept {
-    *this = std::as_const(other);
-    other.isMoved = true;
-}
-
-
-STTNode::STTNode(STTNode const& other) noexcept: STTNode {} {
-    memcpy(model.words, other.model.words, model.wordCnt * sizeof(u64));
-    memcpy(view.varVis.words, other.view.varVis.words, view.varVis.wordCnt * sizeof(u64));
-    memcpy(view.clauseVis.words, other.view.clauseVis.words, view.clauseVis.wordCnt * sizeof(u64));
-}
-
-STTNode::~STTNode() {
-    if (!isMoved) allocator.pop();
-}
 
 STTNode STTNode::nextAfter(STTNode const& current) {
     auto next = STTNode {current};

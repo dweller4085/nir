@@ -5,21 +5,13 @@
 #include "memory.hh"
 
 struct CDBView {
-    BinVecSlice varVis;
-    BinVecSlice clauseVis;
+    BinVec varVis {Solver::cdb.varCnt, true};
+    BinVec clauseVis {Solver::cdb.clauseCnt, true};
 };
 
 struct STTNode {
     struct Unit { s32 clause; u32 var; };
-
-    static FrameAllocator allocator;
     static STTNode nextAfter(STTNode const& current);
-
-    STTNode();
-    STTNode(STTNode&&) noexcept;
-    STTNode(STTNode const&) noexcept;
-    STTNode& operator = (STTNode const&) = default;
-    ~STTNode();
 
     bool unitPropagate();
     bool isSAT() const;
@@ -29,9 +21,8 @@ struct STTNode {
     void applyAssignment(u32 var, Ternary value);
     Unit findUnit() const;
 
-    bool isMoved {false}; // god damn it
     bool isMarked {false};
-    TerVecSlice model;
+    TerVec model {Solver::cdb.varCnt, Undef};
     CDBView view;
     struct {
         s32 index {-1};
