@@ -48,6 +48,13 @@ struct TerVecSlice {
     static u32 wordCntFor(u32 len) { return (len - 1) / 32 + 1; }
     static usize memoryFor(u32 len) { return wordCntFor(len) * sizeof(u64); }
     TerVecSlice() = default;
+    TerVecSlice(void * memory, TerVecSlice const& other) {
+        // assumes size of `memory` >= `other.words`
+        words = (u64 *) memory;
+        len = other.len;
+        wordCnt = other.wordCnt;
+        memcpy(words, other.words, wordCnt * sizeof(u64));
+    }
     TerVecSlice(u32 len, u64 * words): len {len}, words {words}, wordCnt {wordCntFor(len)} {}
     TerVecSlice(u32 len, Ternary value, u64 * words): TerVecSlice {len, words} { init(value); }
     void init(Ternary value) {
@@ -86,6 +93,13 @@ struct TerVecSlice {
     Ternary isMonotone() const {
         /* impl... */
         return {};
+    }
+    void operator &= (BinVecSlice const& vis) {
+        // assumes `this->len` == `vis.len`
+        // for each unset bit in `vis` set the corresponding component here to `Undef`.
+
+
+
     }
     operator std::string () const;
 

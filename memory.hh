@@ -2,44 +2,20 @@
 #include "common.hh"
 #include <stdlib.h>
 
-struct FrameAllocator {
-    FrameAllocator() = default;
+struct Scratch {
+    static u8 * const memory;
+    static u8 * head;
+    static u8 * tail;
 
-    FrameAllocator(usize frameSize, u32 slotCnt): frameSize {frameSize} {
-        memory = (u8 *) malloc(frameSize * slotCnt);
-        curr = frame = memory;
+    static void push() { tail = head; }
+    static void pop() { head = tail; }
+    static void * salloc(usize size) {
+        head += size;
+        return head - size;
     }
 
-    FrameAllocator& operator = (FrameAllocator const&) = default;
+    Scratch() { push(); }
+    ~Scratch() { pop(); }
 
-    FrameAllocator& operator = (FrameAllocator&& other) noexcept {
-        if (memory) free(memory);
-        *this = std::as_const(other);
-        other.memory = nullptr;
-        return *this;
-    }
-
-    ~FrameAllocator() {
-        if (memory) free(memory);
-    }
-
-    void push() {
-        frame += frameSize;
-        curr = frame;
-    }
-
-    void pop() {
-        frame -= frameSize;
-        curr = frame;
-    }
-
-    void * alloc(usize size) {
-        curr += size;
-        return curr - size;
-    }
-
-    u8 * memory;
-    u8 * frame;
-    u8 * curr;
-    usize frameSize;
+    void * alloc(usize size) { return salloc(size); }
 };

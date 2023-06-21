@@ -30,6 +30,9 @@
     <ClCompile Include="stt.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="memory.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vec.hh">

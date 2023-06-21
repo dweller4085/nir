@@ -50,6 +50,9 @@ bool STTNode::isSAT() const {
 }
 
 bool STTNode::hasConflict() const {
+    // try to find an empty clause
+
+    /*
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
@@ -62,6 +65,22 @@ bool STTNode::hasConflict() const {
         }
 
         if (isEmpty) {
+            Solver::stats.conflictCnt += 1;
+            return true;
+        }
+    }
+
+    return false;
+    */
+
+    for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+        if (!view.clauseVis.at(i)) continue;
+
+        auto scratch = Scratch {};
+        auto vec = TerVecSlice {scratch.alloc(0), Solver::cdb.clause(i)};
+        vec &= view.varVis;
+
+        if (vec.rang() == 0) {
             Solver::stats.conflictCnt += 1;
             return true;
         }
@@ -88,7 +107,6 @@ STTNode::Unit STTNode::findUnit() const {
         }
     }
 
-    // sentinel 'no unit found'
     return Unit {-1, 0};
 }
 
@@ -96,12 +114,17 @@ void STTNode::applyAssignment(u32 var, Ternary value) {
     model.set(var, value);
     view.varVis.clear(var);
 
-    // could take a column and do this 64bit words at a time instead of this for loop
+    // 25:3 don't see a simple way to do this better
+    // or maybe I do:
+    // create a BinVecSlice from view.clauseVis and Solver::cdb.clause(i)
+    // and just do some masking to view.clauseVis
+    // or maybe do it in one single function
+
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (view.clauseVis.at(i) && Solver::cdb.at(i, var) == value) {
             view.clauseVis.clear(i);
         }
-    }
+    }    
 }
 
 void STTNode::chooseBranchVar() {
