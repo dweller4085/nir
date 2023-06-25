@@ -2,6 +2,7 @@
 #include <intrin.h>
 #include <string>
 #include "common.hh"
+#include "memory.hh"
 
 enum Ternary { False = 0b00, True = 0b01, Undef = 0b10 };
 
@@ -29,7 +30,7 @@ struct BinVecSlice {
     bool clear(u32 i) {
         return _bittestandreset64((__int64 *) words + i / 64, i % 64);
     }
-    bool isAllZeros() const {
+    bool isAllZeroes() const {
         u64 s = 0;
         for (u32 i = 0; i < wordCnt; i += 1) {
             s |= words[i];
@@ -55,8 +56,8 @@ struct TerVecSlice {
         wordCnt = other.wordCnt;
         memcpy(words, other.words, wordCnt * sizeof(u64));
     }
-    TerVecSlice(u32 len, u64 * words): len {len}, words {words}, wordCnt {wordCntFor(len)} {}
-    TerVecSlice(u32 len, Ternary value, u64 * words): TerVecSlice {len, words} { init(value); }
+    TerVecSlice(u32 len, void * words): len {len}, words {(u64 *) words}, wordCnt {wordCntFor(len)} {}
+    TerVecSlice(u32 len, Ternary value, void * words): TerVecSlice {len, words} { init(value); }
     void init(Ternary value) {
         u32 static constexpr fill[3] {
             0x00,
@@ -68,9 +69,10 @@ struct TerVecSlice {
         words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
     }
     Ternary at(u32 i) const noexcept {
-        return (Ternary) ((words[i / 32] >> ((i % 32) * 2)) & u64 { 3 });
+        return (Ternary) ((words[i / 32] >> ((i % 32) * 2)) & u64 { 0b11 });
     }
     void set(u32 i, Ternary v) noexcept {
+        // probably better to just _bittestand[re]set64 the two bits
         u64 const j = (i % 32) * 2;
         words[i / 32] = words[i / 32] & ~(u64 {3} << j) | (u64)v << j;
     }
@@ -85,21 +87,58 @@ struct TerVecSlice {
         return {-1};
     }
     u32 rang() const {
-        u32 undefs = 0;
+        u32 r = len;
         for (u32 i = 0; i < wordCnt; i += 1) {
-            undefs += __popcnt64(words[i] & 0xAAAAAAAAAAAAAAAA);
-        } return len - undefs;
+            r -= __popcnt64(words[i] & 0xAAAAAAAAAAAAAAAA);
+        } return r;
+    }
+    bool isEmpty() const { return rang() == 0; }
+    void set(u32 i) {
+        // assumes this vec is used like a binvec, and the `Undef` even bits are never set.
+        _bittestandset64((__int64 *) words + i / 32, (i % 32) * 2);
+    }
+    void clear(u32 i) {
+        // assumes this vec is used like a binvec, and the `Undef` even bits are never set.
+        _bittestandreset64((__int64 *) words + i / 32, (i % 32) * 2);
+    }
+    bool isAllZeroes() const {
+        u64 s = 0;
+        for (u32 i = 0; i < wordCnt; i += 1) {
+            s |= words[i];
+        }
+
+        return s == 0;
     }
     Ternary isMonotone() const {
         /* impl... */
         return {};
     }
-    void operator &= (BinVecSlice const& vis) {
+    s32 isUnit() const {
+        // see if this clause is a unit clause, if it is - return the def var index, else -1.
+
+        //it's fine it's fine
+        if (rang() != 1) return -1;
+
+        u32 i = 0;
+        unsigned long j = 0;
+
+        while (!_BitScanForward64(&j, ~words[i] & 0xAAAAAAAAAAAAAAAA)) {
+            i += 1;
+        }
+
+        return 32 * i + (j - 1) / 2;
+    }
+    void applyVis(TerVecSlice const& vis) {
         // assumes `this->len` == `vis.len`
-        // for each unset bit in `vis` set the corresponding component here to `Undef`.
+        // for each `False` component in `vis` set the corresponding component here to `Undef`.
+        // and for each `True` component in `vis` leave the coresspond. comp. here as is.
+        for (u32 i = 0; i < wordCnt; i += 1) {
+            u64 mask = vis.words[i] | vis.words[i] << 1;
+            words[i] = words[i] & mask | 0xAAAAAAAAAAAAAAAA & ~mask;
+        }
 
-
-
+        // clean up the mess in the leftover bits :P
+        words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
     }
     operator std::string () const;
 
@@ -108,6 +147,7 @@ struct TerVecSlice {
     u32 len;
 };
 
+// template<typename T>
 struct BinVec: BinVecSlice {
     BinVec() = default;
     BinVec(u32 len, bool value);
@@ -116,6 +156,7 @@ struct BinVec: BinVecSlice {
     ~BinVec();
 };
 
+// template<typename T>
 struct TerVec: TerVecSlice {
     TerVec() = default;
     TerVec(u32 len, Ternary value);
@@ -124,3 +165,19 @@ struct TerVec: TerVecSlice {
     TerVec(TerVec&&) noexcept;
     ~TerVec();
 };
+
+// here's an idea if I'll ever need to have custom alloc
+//    gStackAllocator for the binvecs/terves in sttnodes
+//    a little scratch for temp calculations
+/*
+template<> TerVec<StackAllocator alloc?>::TerVec(u32 len, Ternary value):
+    TerVecSlice {len, value, alloc.alloc(TerVecSlice::memoryFor(len))}
+{}
+
+template<> TerVec<StackAllocator>::~TerVec() {}
+
+template<> TerVec<void>::~TerVec() {
+    if (words) free(words);
+}
+
+*/

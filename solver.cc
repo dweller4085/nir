@@ -11,6 +11,7 @@ bool Solver::init(std::string const& cnf) {
     stats = {};
     bool ok = false;
     cdb = ClauseDB {cnf, ok};
+    Scratch::init(4 * TerVecSlice::memoryFor(cdb.varCnt) + 4 * TerVecSlice::memoryFor(cdb.clauseCnt));
     return ok;
 }
 

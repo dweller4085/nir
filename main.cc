@@ -5,6 +5,7 @@
 #include <sstream>
 #include <filesystem>
 #include "solver.hh"
+#include "memory.hh"
 
 std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 rang, u32 seed) {
     auto cnf = std::string {} + "n " + std::to_string(varCnt) + "\nm " + std::to_string(clauseCnt) + "\n";
@@ -53,6 +54,7 @@ void runCnfTests(u32 a, u32 b) {
 }
 
 int main (int argc, char ** argv) {
+    Scratch::init(1024);
     /*for (int i = 1; i <= 14; i += 1) {
         std::cout << i << ". Solving...\n";
         auto in = std::ifstream {std::string{} + "C:\\Users\\i\\Documents\\nir_tests\\random\\dnfRnd_" + std::to_string(i) + ".pla"};
@@ -67,4 +69,14 @@ int main (int argc, char ** argv) {
         out.close();
     }*/
     runCnfTests(0, 0);
+    /*
+    auto scratch = Scratch {};
+    auto vec = TerVecSlice {65, Undef, scratch.alloc(TerVecSlice::memoryFor(65))};
+    //vec.set(0, Undef);
+    vec.set(64, False);
+    
+    std::cout << "vec: " << (std::string) vec << "\n";
+    std::cout << "rang: " << vec.rang() << "\n";
+    std::cout << "isUnit: " << vec.isUnit() << "\n";
+    */
 }

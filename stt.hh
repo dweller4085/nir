@@ -5,8 +5,8 @@
 #include "memory.hh"
 
 struct CDBView {
-    BinVec varVis {Solver::cdb.varCnt, true};
-    BinVec clauseVis {Solver::cdb.clauseCnt, true};
+    TerVec varVis {Solver::cdb.varCnt, True};
+    TerVec clauseVis {Solver::cdb.clauseCnt, True};
 };
 
 struct STTNode {

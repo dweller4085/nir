@@ -46,41 +46,19 @@ bool STTNode::unitPropagate() {
 }
 
 bool STTNode::isSAT() const {
-    return view.clauseVis.isAllZeros();
+    return view.clauseVis.isAllZeroes();
 }
 
 bool STTNode::hasConflict() const {
     // try to find an empty clause
 
-    /*
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
-        bool isEmpty = true;
-        for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-            if (view.varVis.at(j) && Solver::cdb.at(i, j) != Undef) {
-                isEmpty = false;
-                break;
-            }
-        }
+        auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.clause(i)};
+        vec.applyVis(view.varVis);
 
-        if (isEmpty) {
-            Solver::stats.conflictCnt += 1;
-            return true;
-        }
-    }
-
-    return false;
-    */
-
-    for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
-        if (!view.clauseVis.at(i)) continue;
-
-        auto scratch = Scratch {};
-        auto vec = TerVecSlice {scratch.alloc(0), Solver::cdb.clause(i)};
-        vec &= view.varVis;
-
-        if (vec.rang() == 0) {
+        if (vec.isEmpty()) {
             Solver::stats.conflictCnt += 1;
             return true;
         }
@@ -90,20 +68,16 @@ bool STTNode::hasConflict() const {
 }
 
 STTNode::Unit STTNode::findUnit() const {
+    // try to find a unit clause
+
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
-        u32 k = 0;
-        s32 s = 0;
-        for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-            if (view.varVis.at(j) && Solver::cdb.at(i, j) != Undef) {
-                if ((s += 1) > 1) break;
-                k = j;
-            }
-        }
+        auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.clause(i)};
+        vec.applyVis(view.varVis);
 
-        if (s == 1) {
-            return Unit {(s32)i, k};
+        if (auto var = vec.isUnit(); var >= 0) {
+            return Unit {(s32) i, (u32) var};
         }
     }
 
@@ -113,12 +87,6 @@ STTNode::Unit STTNode::findUnit() const {
 void STTNode::applyAssignment(u32 var, Ternary value) {
     model.set(var, value);
     view.varVis.clear(var);
-
-    // 25:3 don't see a simple way to do this better
-    // or maybe I do:
-    // create a BinVecSlice from view.clauseVis and Solver::cdb.clause(i)
-    // and just do some masking to view.clauseVis
-    // or maybe do it in one single function
 
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (view.clauseVis.at(i) && Solver::cdb.at(i, var) == value) {

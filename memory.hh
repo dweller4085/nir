@@ -3,10 +3,14 @@
 #include <stdlib.h>
 
 struct Scratch {
-    static u8 * const memory;
+    static u8 * memory;
     static u8 * head;
     static u8 * tail;
 
+    static void init(usize size) {
+        if (memory) free(memory);
+        tail = head = memory = (u8 *) malloc(size);
+    }
     static void push() { tail = head; }
     static void pop() { head = tail; }
     static void * salloc(usize size) {
