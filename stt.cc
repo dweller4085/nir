@@ -96,10 +96,9 @@ void STTNode::applyAssignment(u32 var, Ternary value) {
 }
 
 void STTNode::chooseBranchVar() {
-    /* 24:4 2330 :( ugly hack for now... */
     /* just finding some vector with min rang and picking the col in it with max rang */
 
-    if constexpr (true) {
+    {
         struct {
             u32 rang;
             u32 index = 0;
@@ -109,12 +108,10 @@ void STTNode::chooseBranchVar() {
         for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
             if (!view.clauseVis.at(i)) continue;
 
-            u32 rang = 0;
-            for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-                if (view.varVis.at(j) && Solver::cdb.at(i, j) != Undef) rang += 1;
-            }
+            auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.clause(i)};
+            vec.applyVis(view.varVis);
 
-            if (rang < minClause.rang) {
+            if (auto rang = vec.rang(); rang < minClause.rang) {
                 minClause.rang = rang;
                 minClause.index = i;
             }
@@ -124,12 +121,10 @@ void STTNode::chooseBranchVar() {
         for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
             if (!view.varVis.at(j) || Solver::cdb.at(minClause.index, j) == Undef) continue;
 
-            u32 rang = 0;
-            for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
-                if (view.clauseVis.at(i) && Solver::cdb.at(i, j) != Undef) rang += 1;
-            }
+            auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.column(j)};
+            vec.applyVis(view.clauseVis);
 
-            if (rang > maxCol.rang) {
+            if (auto rang = vec.rang(); rang > maxCol.rang) {
                 maxCol.rang = rang;
                 maxCol.index = j;
             }
@@ -142,8 +137,8 @@ void STTNode::chooseBranchVar() {
         branchVar.value = Undef;
     }
 
-    else {
-        branchVar.index = model.findUndef();
-        branchVar.value = Undef;
-    }
+    /*
+    branchVar.index = model.findUndef();
+    branchVar.value = Undef;
+    */
 }
