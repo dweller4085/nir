@@ -4,7 +4,7 @@
 #include "common.hh"
 #include "memory.hh"
 
-enum Ternary { False = 0b00, True = 0b01, Undef = 0b10 };
+enum Ternary: u64 { False = 0b00, True = 0b01, Undef = 0b10 };
 
 struct BinVecSlice {
     static u32 wordCntFor(u32 len) { return (len - 1) / 64 + 1; }

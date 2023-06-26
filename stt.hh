@@ -27,6 +27,7 @@ struct STTNode {
     struct {
         s32 index {-1};
         Ternary value {Undef};
+        Ternary first {Undef};
     } branchVar;
 };
 

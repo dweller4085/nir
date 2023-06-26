@@ -9,9 +9,14 @@ ClauseDB Solver::cdb {};
 
 bool Solver::init(std::string const& cnf) {
     stats = {};
+    
     bool ok = false;
     cdb = ClauseDB {cnf, ok};
-    Scratch::init(4 * TerVecSlice::memoryFor(cdb.varCnt) + 4 * TerVecSlice::memoryFor(cdb.clauseCnt));
+    
+    if (ok) {
+        Scratch::init(4 * TerVecSlice::memoryFor(cdb.varCnt) + 4 * TerVecSlice::memoryFor(cdb.clauseCnt));
+    }
+    
     return ok;
 }
 
@@ -43,7 +48,6 @@ Solver::Result Solver::solve() {
                     Solver::stats.modelTrace.BV(stack.top().model);
                 }
                 Solver::stats.nodesVisitedCnt += 1;
-
             } else {
                 stack.pop();
 
@@ -52,6 +56,8 @@ Solver::Result Solver::solve() {
                         Solver::stats.modelTrace.BT(stack.top().model);
                     }
                 }
+
+                //continue;
             }
         }
         

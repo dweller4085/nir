@@ -4,28 +4,20 @@ STTNode STTNode::nextAfter(STTNode const& current) {
     auto next = STTNode {current};
     next.applyAssignment(current.branchVar.index, current.branchVar.value);
     next.isMarked = false;
+    next.branchVar.value = Undef;
     return next;
 }
 
 bool STTNode::setNextValue() {
-    /*
-        can probably support arbitrary variable value choice order, not just
-        undef - false - true.
-        use this->isMarked?
-    */
-    auto nextValue = Undef;
-    
-    if (branchVar.index >= 0) {
-        switch (branchVar.value) {
-            case Undef: nextValue = False; break;
-            case False: nextValue = True; break;
-            case True: nextValue = Undef; break;
-        }
+    if (branchVar.value == Undef) {
+        branchVar.value = branchVar.first;
+    } else if (branchVar.value == branchVar.first) {
+        branchVar.value = (Ternary) (0b1 ^ ((u64) branchVar.first));
+    } else {
+        branchVar.value = Undef;
     }
 
-    branchVar.value = nextValue;
-
-    return nextValue != Undef;
+    return branchVar.value != Undef;
 }
 
 bool STTNode::unitPropagate() {
@@ -96,46 +88,40 @@ void STTNode::applyAssignment(u32 var, Ternary value) {
 }
 
 void STTNode::chooseBranchVar() {
-    /* just finding some vector with min rang and picking the col in it with max rang */
+    struct {
+        u32 rang;
+        u32 index = 0;
+    } minClause {UINT32_MAX}, maxCol {0};
 
-    {
-        struct {
-            u32 rang;
-            u32 index = 0;
-        } minClause {UINT32_MAX}, maxCol {0};
+    /* find a clause with min rang in cdb + cdbview */
+    for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+        if (!view.clauseVis.at(i)) continue;
 
-        /* find a clause with min rang in cdb + cdbview */
-        for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
-            if (!view.clauseVis.at(i)) continue;
+        auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.clause(i)};
+        vec.applyVis(view.varVis);
 
-            auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.clause(i)};
-            vec.applyVis(view.varVis);
-
-            if (auto rang = vec.rang(); rang < minClause.rang) {
-                minClause.rang = rang;
-                minClause.index = i;
-            }
+        if (auto rang = vec.rang(); rang < minClause.rang) {
+            minClause.rang = rang;
+            minClause.index = i;
         }
-
-        /* go over def values / columns of this clause, find the column with max rang */
-        for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-            if (!view.varVis.at(j) || Solver::cdb.at(minClause.index, j) == Undef) continue;
-
-            auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.column(j)};
-            vec.applyVis(view.clauseVis);
-
-            if (auto rang = vec.rang(); rang > maxCol.rang) {
-                maxCol.rang = rang;
-                maxCol.index = j;
-            }
-        }
-
-        /* we're done. this is the branch var index. */
-        branchVar.index = maxCol.index;
-
-        /* for now this is how it is, because of how setNextValue works. */
-        branchVar.value = Undef;
     }
+
+    /* go over def values / columns of this clause, find the column with max rang */
+    for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
+        if (!view.varVis.at(j) || Solver::cdb.at(minClause.index, j) == Undef) continue;
+
+        auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.column(j)};
+        vec.applyVis(view.clauseVis);
+
+        if (auto rang = vec.rang(); rang > maxCol.rang) {
+            maxCol.rang = rang;
+            maxCol.index = j;
+        }
+    }
+
+    /* we're done. this is the branch var index. */
+    branchVar.index = maxCol.index;
+    branchVar.first = Solver::cdb.at(minClause.index, maxCol.index);
 
     /*
     branchVar.index = model.findUndef();
