@@ -14,7 +14,14 @@ bool Solver::init(std::string const& cnf) {
     cdb = ClauseDB {cnf, ok};
     
     if (ok) {
-        Scratch::init(4 * TerVecSlice::memoryFor(cdb.varCnt) + 4 * TerVecSlice::memoryFor(cdb.clauseCnt));
+        Scratch::init(
+            TerVecSlice::memoryFor(cdb.varCnt) +
+            TerVecSlice::memoryFor(cdb.clauseCnt) +
+            4 * sizeof(usize) * cdb.varCnt +
+            4 * sizeof(usize) * cdb.clauseCnt +
+            1024,
+            128
+        );
     }
     
     return ok;

@@ -72,7 +72,6 @@ struct TerVecSlice {
         return (Ternary) ((words[i / 32] >> ((i % 32) * 2)) & u64 { 0b11 });
     }
     void set(u32 i, Ternary v) noexcept {
-        // probably better to just _bittestand[re]set64 the two bits
         u64 const j = (i % 32) * 2;
         words[i / 32] = words[i / 32] & ~(u64 {3} << j) | (u64)v << j;
     }
@@ -94,12 +93,12 @@ struct TerVecSlice {
     }
     bool isEmpty() const { return rang() == 0; }
     void set(u32 i) {
-        // assumes this vec is used like a binvec, and the `Undef` even bits are never set.
         _bittestandset64((__int64 *) words + i / 32, (i % 32) * 2);
+        _bittestandreset64((__int64 *) words + i / 32, (i % 32) * 2 + 1);
     }
     void clear(u32 i) {
-        // assumes this vec is used like a binvec, and the `Undef` even bits are never set.
         _bittestandreset64((__int64 *) words + i / 32, (i % 32) * 2);
+        _bittestandreset64((__int64 *) words + i / 32, (i % 32) * 2 + 1);
     }
     bool isAllZeroes() const {
         u64 s = 0;
@@ -110,9 +109,30 @@ struct TerVecSlice {
         return s == 0;
     }
     Ternary isMonotone() const {
-        /* impl... */
-        return {};
+        if (rang() > 0) {
+            if (countOnes() == 0) {
+                return False;
+            } else if (countZeroes() == 0) {
+                return True;
+            }
+        }
+        
+        return Undef;
     }
+    u32 countOnes() const {
+        u32 count = 0;
+        for (u32 i = 0; i < wordCnt; i += 1) {
+            u64 mask = (words[i] & 0xAAAAAAAAAAAAAAAA);
+            mask |= mask >> 1;
+            mask = ~mask;
+            count += __popcnt64(words[i] & mask);
+        } return count;
+    }
+    u32 countZeroes() const {
+        // bleh
+        return rang() - countOnes();
+    }
+
     s32 isUnit() const {
         // see if this clause is a unit clause, if it is - return the def var index, else -1.
 
@@ -140,6 +160,7 @@ struct TerVecSlice {
         // clean up the mess in the leftover bits :P
         words[wordCnt - 1] &= 0xFFFFFFFFFFFFFFFF >> (32 - len % 32) * 2;
     }
+
     operator std::string () const;
 
     u64 * words;

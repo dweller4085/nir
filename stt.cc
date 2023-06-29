@@ -44,10 +44,12 @@ bool STTNode::isSAT() const {
 bool STTNode::hasConflict() const {
     // try to find an empty clause
 
+    auto _ = Scratch {};
+
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
-        auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.clause(i)};
+        auto vec = TerVecSlice {_.alloc(0, 8), Solver::cdb.clause(i)};
         vec.applyVis(view.varVis);
 
         if (vec.isEmpty()) {
@@ -62,10 +64,12 @@ bool STTNode::hasConflict() const {
 STTNode::Unit STTNode::findUnit() const {
     // try to find a unit clause
 
+    auto _ = Scratch {};
+
     for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
         if (!view.clauseVis.at(i)) continue;
 
-        auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.clause(i)};
+        auto vec = TerVecSlice {_.alloc(0, 8), Solver::cdb.clause(i)};
         vec.applyVis(view.varVis);
 
         if (auto var = vec.isUnit(); var >= 0) {
@@ -88,43 +92,141 @@ void STTNode::applyAssignment(u32 var, Ternary value) {
 }
 
 void STTNode::chooseBranchVar() {
+    auto _ = Scratch {};
+    
     struct {
-        u32 rang;
-        u32 index = 0;
-    } minClause {UINT32_MAX}, maxCol {0};
+        usize * clauses;
+        TerVecSlice mask;
+        usize size = 0;
+    } minRangClauseSet {
+        _.alloc<usize>(Solver::cdb.clauseCnt),
+        {Solver::cdb.clauseCnt, False, _.alloc(TerVecSlice::memoryFor(Solver::cdb.clauseCnt), alignof(u64))},
+    };
 
-    /* find a clause with min rang in cdb + cdbview */
-    for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
-        if (!view.clauseVis.at(i)) continue;
+    { /* build the min rang clauses subset (=: R) of cdb + view. */
+        auto _ = Scratch {};
 
-        auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.clause(i)};
-        vec.applyVis(view.varVis);
+        u32 * clauseRangs = _.alloc<u32>(Solver::cdb.clauseCnt);
+        for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) clauseRangs[i] = UINT32_MAX;
 
-        if (auto rang = vec.rang(); rang < minClause.rang) {
-            minClause.rang = rang;
-            minClause.index = i;
+        u32 minRang = UINT32_MAX;
+
+        /* fill the array of clause rangs. find the min rang. */
+        for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+            if (!view.clauseVis.at(i)) continue;
+
+            auto vec = TerVecSlice {_.alloc(0, 8), Solver::cdb.clause(i)};
+            vec.applyVis(view.varVis);
+
+            auto rang = vec.rang();
+            clauseRangs[i] = rang;
+
+            if (rang < minRang) {
+                minRang = rang;
+            }
+        }
+
+        /* fill the min rang clause subset */
+        for (u32 i = 0; i < Solver::cdb.clauseCnt; i += 1) {
+            if (view.clauseVis.at(i) && clauseRangs[i] == minRang) {
+                minRangClauseSet.clauses[minRangClauseSet.size++] = i;
+                minRangClauseSet.mask.set(i);
+            }
         }
     }
 
-    /* go over def values / columns of this clause, find the column with max rang */
-    for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
-        if (!view.varVis.at(j) || Solver::cdb.at(minClause.index, j) == Undef) continue;
+    struct Columns {
+        usize * columns;
+        usize size = 0;
+    }
+    maxRangColumnSet {_.alloc<usize>(Solver::cdb.varCnt)},
+    maxRangMonotoneCols {_.alloc<usize>(Solver::cdb.varCnt)};
 
-        auto vec = TerVecSlice {Scratch::salloc(0), Solver::cdb.column(j)};
+    { /* now build the set of columns with max rang in R (=: Q), and the subset of monotone cols in Q (=: M). */
+        auto _ = Scratch {};
+
+        u32 * columnRangs = _.alloc<u32>(Solver::cdb.varCnt);
+        for (u32 i = 0; i < Solver::cdb.varCnt; i += 1) columnRangs[i] = 0;
+
+        u32 maxRang = 0;
+
+        for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
+            if (!view.varVis.at(j)) continue;
+
+            auto vec = TerVecSlice {_.alloc(0, 8), Solver::cdb.column(j)};
+            vec.applyVis(minRangClauseSet.mask);
+
+            auto rang = vec.rang();
+            columnRangs[j] = rang;
+
+            if (rang > maxRang) {
+                maxRang = rang;
+            }
+        }
+
+        for (u32 j = 0; j < Solver::cdb.varCnt; j += 1) {
+            if (view.varVis.at(j) && columnRangs[j] == maxRang) {
+                auto vec = TerVecSlice {_.alloc(0, 8), Solver::cdb.column(j)};
+                vec.applyVis(minRangClauseSet.mask);
+
+                maxRangColumnSet.columns[maxRangColumnSet.size++] = j;
+                if (vec.isMonotone() != Undef) maxRangMonotoneCols.columns[maxRangMonotoneCols.size++] = j;
+            }
+        }
+    }
+
+    /* finally we've selected all the subsets R Q M. */
+    
+    /* 1. choose the branch var. */
+    {
+        auto _ = Scratch {};
+
+        struct {
+            u32 rang = 0;
+            usize index = 0;
+        } maxCol;
+
+        Columns cols;
+        if (maxRangMonotoneCols.size > 0) {
+            cols = maxRangMonotoneCols;
+        } else {
+            cols = maxRangColumnSet;
+        }
+
+        /* choose the column with the max rang in cdb + view. */
+        for (u32 k = 0; k < cols.size; k += 1) {
+            auto j = cols.columns[k];
+
+            auto vec = TerVecSlice {_.alloc(0, 8), Solver::cdb.column(j)};
+            vec.applyVis(view.clauseVis);
+
+            if (auto rang = vec.rang(); rang > maxCol.rang) {
+                maxCol.rang = rang;
+                maxCol.index = j;
+            }
+        }
+
+        branchVar.index = maxCol.index; 
+    }
+
+    /* 2. choose the first branch var value to be tried. */
+    {
+        auto _ = Scratch {};
+
+        auto vec = TerVecSlice {_.alloc(0, 8), Solver::cdb.column(branchVar.index)};
         vec.applyVis(view.clauseVis);
 
-        if (auto rang = vec.rang(); rang > maxCol.rang) {
-            maxCol.rang = rang;
-            maxCol.index = j;
+        if (vec.countZeroes() >= vec.countOnes()) {
+            branchVar.first = False;
+        } else {
+            branchVar.first = True;
         }
     }
 
-    /* we're done. this is the branch var index. */
-    branchVar.index = maxCol.index;
-    branchVar.first = Solver::cdb.at(minClause.index, maxCol.index);
+    /* 3. we're done. */
 
     /*
     branchVar.index = model.findUndef();
-    branchVar.value = Undef;
+    branchVar.first = False;
     */
 }

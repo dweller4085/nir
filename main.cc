@@ -41,20 +41,19 @@ std::string generateRandomCnfFixedRang(u32 varCnt, u32 clauseCnt, u32 rang, u32 
 }
 
 void runCnfTests(u32 a, u32 b) {
-    u32 const nVars = 128;
-    u32 const nClauses = 1024;
+    u32 const nVars = 16;
+    u32 const nClauses = 32;
     u32 const rang = 4;
 
     for (u32 i = a; i <= b; i += 1) {
         auto cnf = generateRandomCnfFixedRang(nVars, nClauses, rang, i);
-        //std::cout << std::format("fixedRang ({}, {}, {}, {}):\n{}", nVars, nClauses, rang, i, cnf);
+        std::cout << std::format("fixedRang ({}, {}, {}, {}):\n{}", nVars, nClauses, rang, i, cnf);
         Solver::init(cnf);
         std::cout << "result:\n" + (std::string) Solver::solve() << "\n\n\n";
     }
 }
 
 int main (int argc, char ** argv) {
-    Scratch::init(1024);
     /*for (int i = 1; i <= 14; i += 1) {
         std::cout << i << ". Solving...\n";
         auto in = std::ifstream {std::string{} + "C:\\Users\\i\\Documents\\nir_tests\\random\\dnfRnd_" + std::to_string(i) + ".pla"};
@@ -68,5 +67,6 @@ int main (int argc, char ** argv) {
         out << (std::string) Solver::solve();
         out.close();
     }*/
-    runCnfTests(0, 3);
+
+    //runCnfTests(0, 3);
 }
