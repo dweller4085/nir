@@ -81,6 +81,7 @@ Solver::Result Solver::solve() {
         else if (current.isSAT()) {
             Solver::stats.timeMs = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start}.count();
             Solver::stats.sanityCheck = Solver::sanityCheck(current.model);
+            Solver::stats.redundancyCheck = Solver::redundancyCheck(current.model);
             return {Solver::stats, Result::Sat, {.sat {current.model}}};
         }
         
@@ -92,6 +93,10 @@ Solver::Result Solver::solve() {
 
     Solver::stats.timeMs = std::chrono::duration<float, std::ratio<1, 1000>> {std::chrono::steady_clock::now() - start}.count();
     return {Solver::stats, Result::Unsat, {.unsat {}}};
+}
+
+std::string Solver::redundancyCheck (TerVecSlice const& model) {
+    return {"todo"};
 }
 
 Solver::Result::operator std::string() const {
@@ -110,6 +115,8 @@ Solver::Result::operator std::string() const {
         case Solver::Result::Sat: {
             out += "SAT\n" + (std::string) value.sat;
             statsMsg += std::format("    sanity check: {}\n", stats.sanityCheck);
+            statsMsg += std::format("    rang: {}/{}\n", value.sat.rang(), Solver::cdb.varCnt);
+            statsMsg += std::format("    redundancy: {}\n", stats.redundancyCheck);
         } break;
         case Solver::Result::Unsat: {
             out += "UNSAT";

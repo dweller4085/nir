@@ -216,10 +216,10 @@ void STTNode::chooseBranchVar() {
         auto vec = TerVecSlice {_.alloc(0, 8), Solver::cdb.column(branchVar.index)};
         vec.applyVis(view.clauseVis);
 
-        if (vec.countZeroes() >= vec.countOnes()) {
-            branchVar.first = False;
-        } else {
+        if (vec.countOnes() >= vec.rang() / 2) {
             branchVar.first = True;
+        } else {
+            branchVar.first = False;
         }
     }
 

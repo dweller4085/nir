@@ -109,10 +109,12 @@ struct TerVecSlice {
         return s == 0;
     }
     Ternary isMonotone() const {
-        if (rang() > 0) {
-            if (countOnes() == 0) {
+        auto rang_ = rang();
+        auto ones = countOnes();
+        if (rang_ > 0) {
+            if (ones == 0) {
                 return False;
-            } else if (countZeroes() == 0) {
+            } else if (ones == rang_) {
                 return True;
             }
         }
@@ -127,10 +129,6 @@ struct TerVecSlice {
             mask = ~mask;
             count += __popcnt64(words[i] & mask);
         } return count;
-    }
-    u32 countZeroes() const {
-        // bleh
-        return rang() - countOnes();
     }
 
     s32 isUnit() const {

@@ -16,6 +16,7 @@ struct Solver {
             u32 nodesVisitedCnt {1};
             u32 conflictCnt {0};
             bool sanityCheck {false};
+            std::string redundancyCheck {};
             struct {
                 std::string trace;
                 s32 level {0};
@@ -60,6 +61,7 @@ struct Solver {
     static void reset();
     static Result solve();
     static bool sanityCheck(TerVecSlice const& model);
+    static std::string redundancyCheck (TerVecSlice const& model);
 
     static ClauseDB cdb;
     static Result::Stats stats;
